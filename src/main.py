@@ -40,7 +40,7 @@ db_handler.close_app_if_exists(APP_NAME)
 gcp_handler.init()
 
 
-def submit_form(uid, material, amount, unit, notes, uploaded_images, uploaded_model):
+def submit_form(uid, spec_id, name, material, amount, unit, notes, uploaded_images, uploaded_model):
     msg = []
     with st.spinner(text='Uploading data...'):
         try:
@@ -80,6 +80,8 @@ def submit_form(uid, material, amount, unit, notes, uploaded_images, uploaded_mo
 
                 # upload metadata to database
                 data = {
+                    'spec_id': spec_id,
+                    'name': name,
                     'material': material,
                     'amount': amount,
                     'unit': unit,
@@ -123,16 +125,27 @@ def data_form():
             with st.form(key='info_form'):
                 col1, col2 = st.columns(2)
                 with col1:
-                    mat_list = ['Timber', 'Steel', 'Glass', 'Plaster', 'Brick', 'Concrete', 'polymers', 'Other']
-
-                    material = st.selectbox('Material', mat_list)
-                    col3, col4 = st.columns(2)
+                    col3, col4, col5 = st.columns([1, 2, 1.5])
                     with col3:
-                        amount = st.number_input('Amount', step=1, min_value=0)
+                        spec_id = st.text_input('Specification ID',
+                                                help='What is the specification ID of the component?',
+                                                placeholder='e.g. W01-F')
+                        spec_id = spec_id.upper()
                     with col4:
-                        unit = st.selectbox('Unit', ['piece', 'm^2', 'm^3', 'kg'])
+                        name = st.text_input('Name',
+                                             help='What is the name of the component?',
+                                             placeholder='e.g. Shop Front Window Frame')
+                    with col5:
+                        mat_list = ['Timber', 'Steel', 'Glass', 'Plaster', 'Brick', 'Concrete', 'polymers', 'Other']
+                        material = st.selectbox('Material', mat_list, help='What material is the component made of?')
+
+                    col3, col4 = st.columns([2, 1])
+                    with col3:
+                        amount = st.number_input('Amount', step=1, min_value=0, help='How many components are there?')
+                    with col4:
+                        unit = st.selectbox('Unit', ['piece', 'm^2', 'm^3', 'kg'], help='What is the unit of the amount?')
                 with col2:
-                    notes = st.text_area('Notes/ Description', height=130)
+                    notes = st.text_area('Notes/ Description', height=130, help='Notes or description for extra info')
 
                 # image and 3D model uploader
                 col1, col2 = st.columns(2)
@@ -144,7 +157,7 @@ def data_form():
                     uploaded_model = st.file_uploader('📐 3D Model (.obj)', type=['obj'], accept_multiple_files=False)
 
                 if st.form_submit_button(label='Submit'):
-                    submit_form(uid, material, amount, unit, notes, uploaded_images, uploaded_model)
+                    submit_form(uid, spec_id, name, material, amount, unit, notes, uploaded_images, uploaded_model)
 
 try:
     db_handler.init_db(APP_NAME)

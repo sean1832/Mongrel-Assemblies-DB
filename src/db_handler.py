@@ -50,10 +50,15 @@ def explode_list(df, col_name):
 
     # create new columns and split the list
     col_names = [f'{col_name}_{n}' for n in range(max_len)]
-    df[col_names] = pd.DataFrame(df[col_name].tolist(), index=df.index)
+    temp_df = pd.DataFrame(df[col_name].tolist(), index=df.index, columns=col_names)
 
-    # drop original column
+    # sort the columns
+    temp_df = temp_df.reindex(sorted(temp_df.columns), axis=1)
+
+    # drop original column and join with the sorted DataFrame
     df = df.drop(col_name, axis=1)
+    df = df.join(temp_df)
+
     return df
 
 
