@@ -17,7 +17,7 @@ def auth_user(username):
 
 def login():
     if not check_login():
-        login_form = st.container()
+        login_form = st.form(key='login_form')
 
         with login_form:
             st.markdown('### Login')
@@ -29,7 +29,7 @@ def login():
                 help="Student number is required to upload data. This will form a kind of ID for the data.",
                 placeholder="e.g. s1234567"
             )
-            if st.button('Login'):
+            if st.form_submit_button('Login'):
                 if auth_user(username):
                     st.session_state['student_number'] = username
                     st.session_state['is_authenticated'] = True
@@ -41,10 +41,12 @@ def login():
 
 def logout_button():
     """Logout button."""
-    logout_container = st.empty()
+    title_container = st.form(key='title_container')
     if check_login():
-        logout_container.markdown(f"### {st.session_state['student_number']}")
-        if logout_container.button('Logout'):
+        with title_container:
+            st.markdown(f"# 👤 {st.session_state['student_number']}")
+            submit = st.form_submit_button('Logout')
+        if submit:
             st.session_state['is_authenticated'] = False
             st.session_state['student_number'] = None
             st.experimental_rerun()
