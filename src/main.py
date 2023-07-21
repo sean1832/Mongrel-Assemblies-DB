@@ -35,7 +35,7 @@ gcp_handler.init()
 def data_form():
     # data form
     if auth.check_login():
-        with st.form(key='data_form', clear_on_submit=True):
+        with st.container():
             st.markdown('#### Data form')
             st.markdown("*This section records the data you are uploading.*")
             # info fields
@@ -56,7 +56,7 @@ def data_form():
             uploaded_model = st.file_uploader('3D Model (.obj)', type=['obj'], accept_multiple_files=False)
             uid = utils.create_uuid()
 
-            if st.form_submit_button(label='Submit'):
+            if st.button(label='Submit'):
                 msg = []
                 with st.spinner(text='Uploading data...'):
                     try:
