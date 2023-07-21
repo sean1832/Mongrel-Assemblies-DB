@@ -58,7 +58,7 @@ def explode_list(df, col_name):
 
 
 @st.cache_data
-def get_data():
+def get_data(columns_order=['student_number', 'material', 'amount', 'notes', 'uid', 'images', 'created_at']):
     """Gets the data from the database. This function should be called when user wants to retrieve data to dataframe."""
     db = st.session_state['db']
     users_ref = db.collection('Users')
@@ -82,7 +82,7 @@ def get_data():
             data.append(item_data)
     df = pd.DataFrame(data)
     # reorder columns
-    df = df[['student_number', 'material', 'amount', 'notes', 'uid', 'images', '3d_model']]
+    df = df[columns_order]
 
     # call function for each column that needs exploding
     print("Exploding columns...")
