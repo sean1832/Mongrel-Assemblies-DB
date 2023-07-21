@@ -101,7 +101,10 @@ def submit_form(uid, material, amount, unit, notes, uploaded_images, uploaded_mo
 def data_form():
     # data form
     if st.session_state['is_authenticated']:
-        uid_gen = utils.create_uuid()
+        if "uid" not in st.session_state:
+            st.session_state['uid'] = utils.create_uuid()
+
+        uid_gen = st.session_state['uid']
         with app_body:
             st.markdown('### Data form')
             st.markdown("*This page is for submitting data to the database.*")
@@ -114,7 +117,7 @@ def data_form():
                     help="**IMPORTANT: UID must be unique within the database! "
                          "Allocate same UID will override associated existing data**")
                 if uid == '' or st.form_submit_button(label='Generate new UID'):
-                    uid = uid_gen
+                    uid = utils.create_uuid()
 
             # info fields
             with st.form(key='info_form'):
