@@ -23,9 +23,11 @@ if 'storage_client' not in st.session_state:
     st.session_state['storage_client'] = None
 if 'app_name' not in st.session_state:
     st.session_state['app_name'] = 'mon-asm'
+if 'db_root' not in st.session_state:
+    st.session_state['db_root'] = 'Inventory'
 
-app_name = st.session_state['app_name']
-
+APP_NAME = st.session_state['app_name']
+ROOT = st.session_state['db_root']
 
 # set up containers
 app_header = st.container()
@@ -34,7 +36,7 @@ sidebar.sidebar()
 
 # clearing database if it exists
 app = None
-db_handler.close_app_if_exists(app_name)
+db_handler.close_app_if_exists(APP_NAME)
 gcp_handler.init()
 
 
@@ -91,14 +93,14 @@ def data_form():
                                     msg.append(
                                         f"Image {uploaded_image.name} size is `{file_io.get_size_from_bytes(img_data)}`. Compressed to `{file_io.get_size_from_bytes(file_io.compress_image(img))}`.")
                                     with open(file_path, 'rb') as f:
-                                        gcp_handler.upload_to_bucket(f, uid, f'{uid}-{img_count:02d}')
+                                        gcp_handler.upload_to_bucket(ROOT, f, uid, f'{uid}-{img_count:02d}')
                                     img_count += 1
                                 else:
                                     uploaded_image.seek(0)
-                                    gcp_handler.upload_to_bucket(uploaded_image, uid, f'{uid}-{img_count:02d}')
+                                    gcp_handler.upload_to_bucket(ROOT, uploaded_image, uid, f'{uid}-{img_count:02d}')
 
                             # upload 3D model
-                            gcp_handler.upload_to_bucket(uploaded_model, uid, uid)
+                            gcp_handler.upload_to_bucket(ROOT, uploaded_model, uid, uid)
 
                             # upload metadata to database
                             data = {
@@ -106,8 +108,8 @@ def data_form():
                                 'amount': amount,
                                 'unit': unit,
                                 'notes': notes,
-                                'images': gcp_handler.get_blob_urls(uid, f'{uid}-*', ['.jpg', '.jpeg', '.png']),
-                                '3d_model': gcp_handler.get_blob_urls(uid, uid, ['.obj'])
+                                'images': gcp_handler.get_blob_urls(ROOT, uid, f'{uid}-*', ['.jpg', '.jpeg', '.png']),
+                                '3d_model': gcp_handler.get_blob_urls(ROOT, uid, uid, ['.obj'])
                             }
                             db_handler.set_data(data, uid)
                             # clear cache
@@ -121,8 +123,8 @@ def data_form():
 
 
 try:
-    db_handler.init_db(app_name)
-    app = db_handler.get_init_firestore_app(app_name)
+    db_handler.init_db(APP_NAME)
+    app = db_handler.get_init_firestore_app(APP_NAME)
     print('Database initialized.')
 
     with app_header:
@@ -145,6 +147,6 @@ except KeyboardInterrupt:
     pass
 finally:
     if app:
-        db_handler.close_app_if_exists(app_name)
+        db_handler.close_app_if_exists(APP_NAME)
         utils.clear_temp()
         print('Database closed.')

@@ -19,7 +19,7 @@ def init():
     st.session_state['storage_client'] = storage_client
 
 
-def upload_to_bucket(file, uid, name):
+def upload_to_bucket(root_dir, file, uid, name):
     try:
         # get file extension
         extension = os.path.splitext(file.name)[1]
@@ -27,18 +27,18 @@ def upload_to_bucket(file, uid, name):
 
         storage_client = st.session_state['storage_client']
         bucket = storage_client.get_bucket(st.secrets['gcp']['bucket_name'])
-        blob = bucket.blob(f"{uid}/{filename}")
+        blob = bucket.blob(f"{root_dir}/{uid}/{filename}")
         blob.upload_from_file(file)
     except Exception as e:
         st.error(e)
         st.stop()
 
 
-def download_from_bucket(filename, uid):
+def download_from_bucket(root_dir, filename, uid):
     try:
         storage_client = st.session_state['storage_client']
         bucket = storage_client.get_bucket(st.secrets['gcp']['bucket_name'])
-        blob = bucket.blob(f"{uid}/{filename}")
+        blob = bucket.blob(f"{root_dir}/{uid}/{filename}")
 
         if not os.path.exists('temp'):
             os.makedirs('temp')
@@ -51,7 +51,7 @@ def download_from_bucket(filename, uid):
         st.stop()
 
 
-def get_blob_urls(uid, name_pattern, extensions=['.jpg', '.png', '.jpeg']):
+def get_blob_urls(root_dir, uid, name_pattern, extensions=['.jpg', '.png', '.jpeg']):
     storage_client = st.session_state['storage_client']
     bucket = storage_client.get_bucket(st.secrets['gcp']['bucket_name'])
 
@@ -61,7 +61,7 @@ def get_blob_urls(uid, name_pattern, extensions=['.jpg', '.png', '.jpeg']):
         # Split the pattern into a prefix and the rest of the pattern
         prefix, pattern = name_pattern.split('*', 1)
         # List blobs whose names start with the given prefix
-        for blob in bucket.list_blobs(prefix=f"{uid}/{prefix}"):
+        for blob in bucket.list_blobs(prefix=f"{root_dir}/{uid}/{prefix}"):
             # For each blob, check if the rest of the name matches the pattern and the extension is one of the allowed extensions
             for extension in extensions:
                 if blob.name.endswith(extension) and fnmatch.fnmatch(blob.name, f"{uid}/{name_pattern}"):
@@ -72,7 +72,7 @@ def get_blob_urls(uid, name_pattern, extensions=['.jpg', '.png', '.jpeg']):
         # If no wildcard is present, process name_pattern as exact file name.
         # Combine name_pattern with each extension and check for blob's existence
         for extension in extensions:
-            blob = bucket.blob(f"{uid}/{name_pattern}{extension}")
+            blob = bucket.blob(f"{root_dir}/{uid}/{name_pattern}{extension}")
             if blob.exists():
                 urls.append(blob.public_url)
 
