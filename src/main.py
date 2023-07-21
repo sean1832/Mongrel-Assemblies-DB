@@ -94,10 +94,10 @@ def data_form():
                                         f"Image {uploaded_image.name} size is `{file_io.get_size_from_bytes(img_data)}`. Compressed to `{file_io.get_size_from_bytes(file_io.compress_image(img))}`.")
                                     with open(file_path, 'rb') as f:
                                         gcp_handler.upload_to_bucket(ROOT, f, uid, f'{uid}-{img_count:02d}')
-                                    img_count += 1
                                 else:
                                     uploaded_image.seek(0)
                                     gcp_handler.upload_to_bucket(ROOT, uploaded_image, uid, f'{uid}-{img_count:02d}')
+                                img_count += 1
 
                             # upload 3D model
                             gcp_handler.upload_to_bucket(ROOT, uploaded_model, uid, uid)
