@@ -34,8 +34,8 @@ try:
                 file_io.export_to_csv(df, 'database.csv')
             with col2:
                 file_io.export_to_excel(df, "database.xlsx")
-            with col3:
-                file_io.export_to_json(df, "database.json")
+            # with col3:
+            #     file_io.export_to_json(df, "database.json")
 
             # Get list of column names
             df_cols = df.columns.tolist()

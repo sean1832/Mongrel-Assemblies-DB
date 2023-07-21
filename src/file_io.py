@@ -52,14 +52,14 @@ def export_to_excel(df, filename):
                        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
 
-def export_to_json(df, filename):
-    """Exports the data to a json file."""
-    try:
-        db = st.session_state['db']
-        data = db_handler.fetch_all(db)
-        data_json = json.dumps(data)
-        st.download_button("⚙️Download JSON", data_json, f"{filename}.json", "text/json")
-    except Exception as e:
-        st.error(e)
-        st.error('Failed to export to JSON.')
-        st.stop()
+# def export_to_json(df, filename):
+#     """Exports the data to a json file."""
+#     try:
+#         db = st.session_state['db']
+#         data = db_handler.fetch_all(db)
+#         data_json = json.dumps(data)
+#         st.download_button("⚙️Download JSON", data_json, f"{filename}.json", "text/json")
+#     except Exception as e:
+#         st.error(e)
+#         st.error('Failed to export to JSON.')
+#         st.stop()
