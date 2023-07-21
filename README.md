@@ -1,2 +1,2 @@
 # Mongrel-Assemblies-DB
- Database web interface for salvage construction materials
+ Database web interface for salvage construction materials.
