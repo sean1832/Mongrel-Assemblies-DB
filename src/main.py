@@ -132,9 +132,13 @@ try:
             "Users can upload images and "
             "3D models of reclaimed materials along with its metadata. "
             "This might help better documenting the materials for future use.")
-        st.warning("Note: This is a quick & dirty project, so there might be bugs.")
+        st.info("Note: This is a quick & dirty project, so there might be bugs.")
 
-    data_form()
+    if not st.session_state['is_authenticated']:
+        st.warning('⚠️ Please log in to use the app!')
+        st.stop()
+    else:
+        data_form()
 
 
 except KeyboardInterrupt:
