@@ -31,9 +31,9 @@ try:
 
             col1, col2, col3 = st.columns([0.1, 0.1, 1])
             with col1:
-                file_io.export_to_csv(df, 'database.csv')
+                file_io.export_to_csv(df, 'database')
             with col2:
-                file_io.export_to_excel(df, "database.xlsx")
+                file_io.export_to_excel(df, "database")
             # with col3:
             #     file_io.export_to_json(df, "database.json")
 
