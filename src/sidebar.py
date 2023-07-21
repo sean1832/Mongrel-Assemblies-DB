@@ -1,4 +1,5 @@
 import streamlit as st
+import file_io
 import auth
 
 
@@ -11,7 +12,7 @@ def sidebar():
 
         info_panel = st.container()
 
-        manifest_data = st.session_state['MANIFEST']
+        st.session_state['MANIFEST'] = manifest_data = file_io.read_json('manifest.json')
 
         with info_panel:
             st.markdown('---')
