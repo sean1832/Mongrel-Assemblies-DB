@@ -123,7 +123,9 @@ def data_form():
             with st.form(key='info_form'):
                 col1, col2 = st.columns(2)
                 with col1:
-                    material = st.selectbox('Material', ['Timber', 'Steel', 'Glass', 'Plaster', 'Brick'])
+                    mat_list = ['Timber', 'Steel', 'Glass', 'Plaster', 'Brick', 'Concrete', 'polymers', 'Other']
+
+                    material = st.selectbox('Material', mat_list)
                     col3, col4 = st.columns(2)
                     with col3:
                         amount = st.number_input('Amount', step=1, min_value=0)
