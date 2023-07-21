@@ -14,7 +14,6 @@ with header:
     st.header('🔥Firebase Database Viewer')
     st.markdown("This page allows you to view the entire database and download the 3D models. Note that this is a `read-only` page, and you cannot edit the database from here.")
     st.info("Contact the **Zeke Zhang** to get access to the database.")
-    auth.login()
 
 with body:
     if st.button("🔃 Refresh database"):

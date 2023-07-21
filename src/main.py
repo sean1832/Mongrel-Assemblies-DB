@@ -24,7 +24,8 @@ sidebar.sidebar()
 
 # set up containers
 app_header = st.container()
-auth.login()
+
+app_body = st.container()
 
 # clearing database if it exists
 app = None
@@ -34,8 +35,8 @@ gcp_handler.init()
 
 def data_form():
     # data form
-    if auth.check_login():
-        with st.container():
+    if st.session_state['is_authenticated']:
+        with app_body:
             st.markdown('#### Data form')
             st.markdown("*This section records the data you are uploading.*")
             # info fields
@@ -107,6 +108,7 @@ def data_form():
 
                             # clear cache
                             st.cache_data.clear()
+                            st.experimental_rerun()
                             if msg:
                                 st.warning("\n\n".join(msg))
                             st.success('🚀Data submitted to database')

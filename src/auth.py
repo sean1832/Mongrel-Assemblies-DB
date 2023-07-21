@@ -16,9 +16,10 @@ def auth_user(username):
 
 
 def login():
-    """Login page."""
-    with st.form(key='login_form'):
-        if not st.session_state['is_authenticated']:
+    if not check_login():
+        login_form = st.container()
+
+        with login_form:
             st.markdown('### Login')
             st.markdown(
                 "*This section authenticate your identity so that the database can record who is uploading what."
@@ -28,23 +29,28 @@ def login():
                 help="Student number is required to upload data. This will form a kind of ID for the data.",
                 placeholder="e.g. s1234567"
             )
-            if st.form_submit_button('Login'):
+            if st.button('Login'):
                 if auth_user(username):
+                    st.session_state['student_number'] = username
+                    st.session_state['is_authenticated'] = True
                     st.experimental_rerun()
+                    st.cache_data.clear()
                 else:
                     st.error('Incorrect username')
     logout_button()
 
-
 def logout_button():
     """Logout button."""
-    with st.form(key='logout_form'):
-        if st.session_state['is_authenticated']:
-            st.markdown(f"### {st.session_state['student_number']}")
-            if st.form_submit_button('Logout'):
-                st.session_state['is_authenticated'] = False
-                st.session_state['student_number'] = None
-                st.experimental_rerun()
+    logout_container = st.empty()
+    if check_login():
+        logout_container.markdown(f"### {st.session_state['student_number']}")
+        if logout_container.button('Logout'):
+            st.session_state['is_authenticated'] = False
+            st.session_state['student_number'] = None
+            st.experimental_rerun()
+            st.cache_data.clear()
+            st.success('Logged out successfully.')
+
 
 
 def check_login():
