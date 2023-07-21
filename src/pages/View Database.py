@@ -54,5 +54,4 @@ try:
 except KeyboardInterrupt:
     pass
 finally:
-    db_handler.close_db(st.session_state['app'])
-    print('Database closed.')
+    db_handler.close_app_if_exists(st.session_state['app_name'])

@@ -5,18 +5,23 @@ import pandas as pd
 import streamlit as st
 
 
-def init_db():
-    """Initializes the database. This function should be called at the start of the app."""
+def get_init_firestore_app(name='default'):
     try:
-        cred = google_handler.get_firebase_creds()
-        app = firebase_admin.initialize_app(cred)
-        db = firestore.client()
-        if 'db' not in st.session_state:
-            st.session_state['db'] = db
-        return app
+        # Check if app already exists
+        app = firebase_admin.get_app(name)
     except ValueError:
-        st.error("Database already initialized.")
-        return None
+        # If app doesn't exist, initialize it
+        cred = google_handler.get_firebase_creds()
+        app = firebase_admin.initialize_app(cred, name=name)
+    return app
+
+
+def init_db(name='default'):
+    """Initializes the database. This function should be called at the start of the app."""
+    app = get_init_firestore_app(name)
+    db = firestore.client(app=app)
+    if 'db' not in st.session_state:
+        st.session_state['db'] = db
 
 
 def set_data(data: dict, uid: str):
@@ -58,6 +63,8 @@ def get_data():
     db = st.session_state['db']
     users_ref = db.collection('Users')
     users_docs = users_ref.stream()
+    print("Fetching data from firestore...")
+
     data = []
     for user_doc in users_docs:
         print("Processing user doc...")
@@ -84,17 +91,14 @@ def get_data():
 
     return df
 
-
-
-def close_db(app):
-    """Closes the database. This function should be called at the end of the app."""
-    firebase_admin.delete_app(app)
-
-
-def close_db_not_exist():
-    """Closes the database. This function should be called at the end of the app."""
-    if firebase_admin._DEFAULT_APP_NAME in firebase_admin._apps:
-        firebase_admin.delete_app(firebase_admin._apps[firebase_admin._DEFAULT_APP_NAME])
+def close_app_if_exists(name='default'):
+    """Closes the Firebase app if it exists. This function should be called at the beginning of the script."""
+    try:
+        app = firebase_admin.get_app(name)
+        firebase_admin.delete_app(app)
+        print(f'App {name} has been closed.')
+    except ValueError as e:
+        print(f'App {name} does not exist.')
 
 
 def fetch_all(db):

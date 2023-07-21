@@ -21,6 +21,11 @@ if 'student_number' not in st.session_state:
     st.session_state['student_number'] = None
 if 'storage_client' not in st.session_state:
     st.session_state['storage_client'] = None
+if 'app_name' not in st.session_state:
+    st.session_state['app_name'] = 'mon-asm'
+
+app_name = st.session_state['app_name']
+
 
 # set up containers
 app_header = st.container()
@@ -29,7 +34,7 @@ sidebar.sidebar()
 
 # clearing database if it exists
 app = None
-db_handler.close_db_not_exist()
+db_handler.close_app_if_exists(app_name)
 gcp_handler.init()
 
 
@@ -116,10 +121,9 @@ def data_form():
 
 
 try:
-    app = db_handler.init_db()
+    db_handler.init_db(app_name)
+    app = db_handler.get_init_firestore_app(app_name)
     print('Database initialized.')
-    if 'app' not in st.session_state:
-        st.session_state['app'] = app
 
     with app_header:
         st.title('🚀Mongrel Assembly Data Entry Form')
@@ -137,6 +141,6 @@ except KeyboardInterrupt:
     pass
 finally:
     if app:
-        db_handler.close_db(app)
+        db_handler.close_app_if_exists(app_name)
         utils.clear_temp()
         print('Database closed.')
