@@ -1,6 +1,4 @@
 import streamlit as st
-import auth
-import init_app
 import sidebar
 import io
 import db_handler
@@ -17,15 +15,17 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# init app
-init_app.init()
-
-sidebar.sidebar()
+if 'is_authenticated' not in st.session_state:
+    st.session_state['is_authenticated'] = False
+if 'student_number' not in st.session_state:
+    st.session_state['student_number'] = None
+if 'storage_client' not in st.session_state:
+    st.session_state['storage_client'] = None
 
 # set up containers
 app_header = st.container()
-
-app_body = st.container()
+app_body = st.form(key="data_form")
+sidebar.sidebar()
 
 # clearing database if it exists
 app = None
@@ -57,11 +57,11 @@ def data_form():
             uploaded_model = st.file_uploader('3D Model (.obj)', type=['obj'], accept_multiple_files=False)
             uid = utils.create_uuid()
 
-            if st.button(label='Submit'):
+            if st.form_submit_button(label='Submit'):
                 msg = []
                 with st.spinner(text='Uploading data...'):
                     try:
-                        if uploaded_images is None or len(uploaded_images) is 0:
+                        if uploaded_images is None or len(uploaded_images) == 0:
                             st.error('❌Please upload an reference image, '
                                      'this could be the photograph of the material '
                                      'or screenshot of the 3D model.')
@@ -105,10 +105,8 @@ def data_form():
                                 '3d_model': gcp_handler.get_blob_urls(uid, uid, ['.obj'])
                             }
                             db_handler.set_data(data, uid)
-
                             # clear cache
                             st.cache_data.clear()
-                            st.experimental_rerun()
                             if msg:
                                 st.warning("\n\n".join(msg))
                             st.success('🚀Data submitted to database')
@@ -119,6 +117,10 @@ def data_form():
 
 try:
     app = db_handler.init_db()
+    print('Database initialized.')
+    if 'app' not in st.session_state:
+        st.session_state['app'] = app
+
     with app_header:
         st.title('🚀Mongrel Assembly Data Entry Form')
         st.markdown(
@@ -137,3 +139,4 @@ finally:
     if app:
         db_handler.close_db(app)
         utils.clear_temp()
+        print('Database closed.')
