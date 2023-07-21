@@ -1,7 +1,6 @@
 import firebase_admin
-from firebase_admin import credentials, firestore
+from firebase_admin import firestore
 import google_handler
-import gcp_handler
 import pandas as pd
 import streamlit as st
 
