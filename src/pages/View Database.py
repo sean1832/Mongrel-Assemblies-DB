@@ -6,7 +6,7 @@ try:
     sidebar.sidebar()
 
     header = st.container()
-    body = st.empty()
+    body = st.container()
     viewer = st.container()
 
     with header:
@@ -16,14 +16,13 @@ try:
         st.info("Contact the **Zeke Zhang** to get access to the database.")
 
     if not st.session_state['is_authenticated']:
-        body = st.container()
         with body:
             st.warning("You are not authenticated. Please log in to view the database.")
     else:
-        body = st.container()
         with body:
             if st.button("🔃 Refresh database"):
                 st.cache_data.clear()
+                st.experimental_rerun()
 
             with st.spinner("fetching from database..."):
                 # fetch data from database
