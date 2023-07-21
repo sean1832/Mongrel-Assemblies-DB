@@ -4,15 +4,15 @@
   "version": "0.0.5",
   "license": {
     "type": "MIT",
-    "url": "https://github.com/sean1832/SumGPT/blob/master/LICENSE"
+    "url": "https://github.com/sean1832/Mongrel-Assemblies-DB/blob/main/LICENSE"
   },
   "author": "Zeke Zhang",
-  "homepage": "",
+  "homepage": "https://github.com/sean1832",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/sean1832/Mongrel-Assemblies-DB"
   },
   "bugs": {
-    "url": ""
+    "url": "https://github.com/sean1832/Mongrel-Assemblies-DB/issues"
   }
 }
