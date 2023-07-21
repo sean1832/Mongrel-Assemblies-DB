@@ -20,7 +20,7 @@ def login():
         login_form = st.form(key='login_form')
 
         with login_form:
-            st.markdown('### Login')
+            st.markdown('### 👤 Login')
             st.markdown(
                 "*This section authenticate your identity so that the database can record who is uploading what."
                 "This also prevent external user from manipulate the database.*")

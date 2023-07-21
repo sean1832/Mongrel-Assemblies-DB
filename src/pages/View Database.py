@@ -10,14 +10,14 @@ try:
     viewer = st.container()
 
     with header:
-        st.header('🔥Firebase Database Viewer')
+        st.title('🔥Firebase Database Viewer')
         st.markdown(
             "This page allows you to view the entire database and download the 3D models. Note that this is a `read-only` page, and you cannot edit the database from here.")
-        st.info("Contact the **Zeke Zhang** to get access to the database.")
+        st.info("ℹ️ Contact the **Zeke Zhang** to get access to the database.")
 
     if not st.session_state['is_authenticated']:
         with body:
-            st.warning("You are not authenticated. Please log in to view the database.")
+            st.warning("⚠️ You are not authenticated. Please log in to view the database.")
     else:
         with body:
             if st.button("🔃 Refresh database"):

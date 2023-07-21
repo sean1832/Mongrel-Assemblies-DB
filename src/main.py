@@ -10,7 +10,7 @@ from PIL import Image
 # set up page
 st.set_page_config(
     page_title="Mongrel Assembly Database",
-    page_icon="📊",
+    page_icon="🔥",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -114,11 +114,11 @@ def data_form():
             # unique id
             with st.form(key='uid_form'):
                 uid = st.text_input(
-                    'UID (Override this if you want to update existing data)',
+                    'UID (Override this if you want to update existing data, you must hit `Enter` to apply changes)',
                     uid_gen,
                     help="**IMPORTANT: UID must be unique within the database! "
                          "Allocate same UID will override associated existing data**")
-                if uid == '' or st.form_submit_button(label='Generate new UID'):
+                if uid == '' or st.form_submit_button(label='🔃 Generate new UID'):
                     uid = utils.create_uuid()
 
             # info fields
@@ -156,7 +156,7 @@ def data_form():
                 with col2:
                     uploaded_model = st.file_uploader('📐 3D Model (.obj)', type=['obj'], accept_multiple_files=False)
 
-                if st.form_submit_button(label='Submit'):
+                if st.form_submit_button(label='🚀 Submit'):
                     submit_form(uid, spec_id, name, material, amount, unit, notes, uploaded_images, uploaded_model)
 
 try:
@@ -165,16 +165,16 @@ try:
     print('Database initialized.')
 
     with app_header:
-        st.title('🚀Mongrel Assembly Data Entry Form')
+        st.title('🔥Mongrel Assembly Data Entry Form')
         st.markdown(
             "Welcome to the Mongrel Assembly Database Interface. "
             "Users can upload images and "
             "3D models of reclaimed materials along with its metadata. "
             "This might help better documenting the materials for future use.")
-        st.info("Note: This is a quick & dirty project, so there might be bugs.")
+        st.info("ℹ️ Note: This is a quick & dirty project, so there might be bugs.")
 
     if not st.session_state['is_authenticated']:
-        st.warning('⚠️ Please log in to use the app!')
+        st.warning('⚠️ Please log in to use the app! (Enter your student number and click Login)')
         st.stop()
     else:
         data_form()

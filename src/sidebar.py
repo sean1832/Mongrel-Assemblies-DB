@@ -6,7 +6,7 @@ import auth
 def sidebar():
     with st.sidebar:
         auth.login()
-        st.markdown("## Navigation\n"
+        st.markdown("## 🧭 Navigation\n"
                     "1. 📃 Enter the form to add data to the database\n"
                     "2. ⬇️ Review & download models from database\n")
 
