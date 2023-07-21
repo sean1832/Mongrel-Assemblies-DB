@@ -64,7 +64,7 @@ def get_blob_urls(root_dir, uid, name_pattern, extensions=['.jpg', '.png', '.jpe
         for blob in bucket.list_blobs(prefix=f"{root_dir}/{uid}/{prefix}"):
             # For each blob, check if the rest of the name matches the pattern and the extension is one of the allowed extensions
             for extension in extensions:
-                if blob.name.endswith(extension) and fnmatch.fnmatch(blob.name, f"{uid}/{name_pattern}"):
+                if blob.name.endswith(extension) and fnmatch.fnmatch(blob.name, f"{root_dir}/{uid}/{name_pattern}"):
                     urls.append(blob.public_url)
                     # Once a match is found, no need to check other extensions
                     break
