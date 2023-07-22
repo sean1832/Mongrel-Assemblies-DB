@@ -119,7 +119,9 @@ def data_form():
                     help="**IMPORTANT: UID must be unique within the database! "
                          "Allocate same UID will override associated existing data**")
                 if uid == '' or st.form_submit_button(label='🔃 Generate new UID'):
-                    uid = utils.create_uuid()
+                    st.session_state['uid'] = utils.create_uuid()
+                    uid = st.session_state['uid']
+                    st.experimental_rerun()
 
             # info fields
             with st.form(key='info_form'):
