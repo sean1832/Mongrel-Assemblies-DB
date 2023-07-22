@@ -10,14 +10,12 @@ using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
 
-using System.IO;
-using System.Text.RegularExpressions;
 
 
 /// <summary>
 /// This class will be instantiated on demand by the Script component.
 /// </summary>
-public abstract class Script_Instance_90513 : GH_ScriptInstance
+public abstract class Script_Instance_d83bb : GH_ScriptInstance
 {
   #region Utility functions
   /// <summary>Print a String to the [Out] Parameter of the Script component.</summary>
@@ -54,83 +52,37 @@ public abstract class Script_Instance_90513 : GH_ScriptInstance
   /// they will have a default value.
   /// </summary>
   #region Runscript
-  private void RunScript(string csv, string col_pat, bool refresh, ref object data)
+  private void RunScript(int maxPts, double sizeU, double sizeV, int u, int v, ref object pts)
   {
-    datas = SearchCsvColumn(csv, col_pat);
-    data = datas;
+    List<Point3d> points = new List<Point3d>();
+    int count = 0;
+
+    for (int i = 0; i < u; i++)
+    {
+      for (int j = 0; j < v; j++)
+      {
+        if (count >= maxPts)
+        {
+          break;
+        }
+        double x = i * sizeU;
+        double y = j * sizeV;
+        Point3d pt = new Point3d(x, y, 0);
+        points.Add(pt);
+        count++;
+      }
+
+      // To exit outer loop as well when the max point limit is reached
+      if (count >= maxPts)
+      {
+        break;
+      }
+    }
+
+    pts = points;
   }
   #endregion
   #region Additional
 
-  List<string> datas = new List<string>();
-
-  private List<string> SearchCsvColumn(string filePath, string pattern)
-  {
-    var matchedValues = new List<string>();
-
-    if (!File.Exists(filePath))
-    {
-      Component.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "File not found");
-      return null;
-    }
-
-    try
-    {
-      using (var reader = new StreamReader(filePath))
-      {
-        int lineCount = 0;
-        int colIndex = -1;
-        while (!reader.EndOfStream)
-        {
-          var line = reader.ReadLine();
-          var values = ParseCsvLine(line);
-          if (lineCount == 0)
-          {
-            for (var i = 0; i < values.Length; i++)
-            {
-              var value = values[i];
-              if (value.StartsWith(pattern))
-              {
-                colIndex = i;
-                Component.Message = "column: " + (colIndex + 1).ToString();
-              }
-            }
-          }
-          else
-          {
-            if (colIndex == -1)
-            {
-              Component.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Column not found");
-              return null;
-            }
-            for (int i = 0; i < values.Length; i++)
-            {
-              if (i == colIndex)
-              {
-                var value = values[i];
-                matchedValues.Add(value);
-              }
-            }
-          }
-          lineCount++;
-        }
-      }
-    }
-    catch (Exception e)
-    {
-      Component.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, e.Message);
-      throw;
-    }
-    
-
-    return matchedValues;
-  }
-
-  private string[] ParseCsvLine(string line)
-  {
-    var pattern = ",(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))";
-    var regex = new Regex(pattern);
-    return regex.Split(line);
-  }
   #endregion
 }

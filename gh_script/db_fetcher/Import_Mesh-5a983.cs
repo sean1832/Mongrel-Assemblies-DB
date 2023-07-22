@@ -10,14 +10,13 @@ using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
 
-using System.IO;
-using System.Text.RegularExpressions;
+using System.Linq;
 
 
 /// <summary>
 /// This class will be instantiated on demand by the Script component.
 /// </summary>
-public abstract class Script_Instance_90513 : GH_ScriptInstance
+public abstract class Script_Instance_5a983 : GH_ScriptInstance
 {
   #region Utility functions
   /// <summary>Print a String to the [Out] Parameter of the Script component.</summary>
@@ -54,83 +53,63 @@ public abstract class Script_Instance_90513 : GH_ScriptInstance
   /// they will have a default value.
   /// </summary>
   #region Runscript
-  private void RunScript(string csv, string col_pat, bool refresh, ref object data)
+  private void RunScript(List<string> localPaths, bool import, ref object mesh)
   {
-    datas = SearchCsvColumn(csv, col_pat);
-    data = datas;
-  }
-  #endregion
-  #region Additional
 
-  List<string> datas = new List<string>();
-
-  private List<string> SearchCsvColumn(string filePath, string pattern)
-  {
-    var matchedValues = new List<string>();
-
-    if (!File.Exists(filePath))
+    if (import)
     {
-      Component.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "File not found");
-      return null;
-    }
-
-    try
-    {
-      using (var reader = new StreamReader(filePath))
+      meshes.Clear();
+      foreach (var path in localPaths)
       {
-        int lineCount = 0;
-        int colIndex = -1;
-        while (!reader.EndOfStream)
+        var _geometries = ImportMesh(path);
+
+        foreach (var geo in _geometries)
         {
-          var line = reader.ReadLine();
-          var values = ParseCsvLine(line);
-          if (lineCount == 0)
+          if (geo is Mesh)
           {
-            for (var i = 0; i < values.Length; i++)
-            {
-              var value = values[i];
-              if (value.StartsWith(pattern))
-              {
-                colIndex = i;
-                Component.Message = "column: " + (colIndex + 1).ToString();
-              }
-            }
+            meshes.Add(geo as Mesh);
           }
-          else
-          {
-            if (colIndex == -1)
-            {
-              Component.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Column not found");
-              return null;
-            }
-            for (int i = 0; i < values.Length; i++)
-            {
-              if (i == colIndex)
-              {
-                var value = values[i];
-                matchedValues.Add(value);
-              }
-            }
-          }
-          lineCount++;
         }
       }
     }
-    catch (Exception e)
-    {
-      Component.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, e.Message);
-      throw;
-    }
+
+    mesh = meshes;
     
-
-    return matchedValues;
   }
+  #endregion
+  #region Additional
+  private List<Mesh> meshes = new List<Mesh>();
 
-  private string[] ParseCsvLine(string line)
+  private List<GeometryBase> ImportMesh(string path)
   {
-    var pattern = ",(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))";
-    var regex = new Regex(pattern);
-    return regex.Split(line);
+    RhinoDoc.ActiveDoc.Objects.UnselectAll();
+    string cmd = "-_Import \"" + path + "\" _Enter";
+    Rhino.RhinoApp.RunScript(cmd, false);
+
+    cmd = "-_SelAll \"" + "\" _Enter";
+    Rhino.RhinoApp.RunScript(cmd, false);
+
+    cmd = "-_Mesh \"" + "\" _Enter";
+    Rhino.RhinoApp.RunScript(cmd, false);
+
+    cmd = "-_SelMesh \"" + "\" _Enter";
+    Rhino.RhinoApp.RunScript(cmd, false);
+
+    cmd = "-_Join \"" + "\" _Enter";
+    Rhino.RhinoApp.RunScript(cmd, false);
+
+    // get the selected objects
+    var selectObjs = RhinoDoc.ActiveDoc.Objects.GetSelectedObjects(false, false).ToList();
+    List<GeometryBase> geos = new List<GeometryBase>();
+
+    // get the meshes
+    foreach (var selectObj in selectObjs)
+    {
+      GeometryBase geo = selectObj.Geometry;
+      geos.Add(geo);
+      RhinoDoc.ActiveDoc.Objects.Delete(selectObj, true);
+    }
+    return geos;
   }
   #endregion
 }

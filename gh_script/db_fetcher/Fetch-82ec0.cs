@@ -54,23 +54,27 @@ public abstract class Script_Instance_82ec0 : GH_ScriptInstance
   /// they will have a default value.
   /// </summary>
   #region Runscript
-  private void RunScript(List<string> urls, string temp_dir, bool fetch, ref object A)
+  private void RunScript(List<string> urls, string tempDir, bool fetch, ref object localPaths)
   {
+    
     if (fetch)
     {
+      isRuned = true;
       msg = new List<string>();
+      files = new List<string>();
       try
       {
         WebClient client = new WebClient();
-        if (!Directory.Exists(temp_dir))
+        if (!Directory.Exists(tempDir))
         {
-          Directory.CreateDirectory(temp_dir);
+          Directory.CreateDirectory(tempDir);
         }
 
-        string filename = urls[0].Split('/')[urls[0].Split('/').Length - 1];
         foreach (var url in urls)
         {
-          client.DownloadFile(new Uri(url), temp_dir + "/" + filename);
+          string filename = url.Split('/')[url.Split('/').Length - 1];
+          client.DownloadFile(new Uri(url), tempDir + "/" + filename);
+          files.Add(tempDir + "/" + filename);
         }
       }
       catch (Exception e)
@@ -80,14 +84,28 @@ public abstract class Script_Instance_82ec0 : GH_ScriptInstance
       }
     }
 
+    if (files.Count > 0)
+    {
+      localPaths = files;
+    }
+
+
     if (errorInPreviousRun)
     {
       Component.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, string.Join("\n", msg));
     }
+    else if (isRuned)
+    {
+      Component.AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "File downloaded at: " + tempDir);
+      Component.Message = "Downloaded";
+    }
+
   }
   #endregion
   #region Additional
   List<string> msg;
   private bool errorInPreviousRun = false;
+  private bool isRuned = false;
+  private List<string> files;
   #endregion
 }
