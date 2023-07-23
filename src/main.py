@@ -113,17 +113,16 @@ def data_form():
             st.markdown("*This page is for submitting data to the database.*")
 
             # unique id
-            with st.form(key='uid_form'):
+            with st.container():
                 uid = st.text_input(
-                    'UID (Override this if you want to update existing data, you must hit `Enter` to apply changes)',
+                    'UID (Override this if you want to update existing data)',
                     uid_gen,
                     help="**IMPORTANT: UID must be unique within the database! "
                          "Allocate same UID will override associated existing data**")
-                if uid == '' or st.form_submit_button(label='🔃 Generate new UID'):
+                if uid == '' or st.button(label='🔃 Generate new UID'):
                     st.session_state['uid'] = utils.create_uuid()
                     uid = st.session_state['uid']
                     st.experimental_rerun()
-
             # info fields
             with st.form(key='info_form'):
                 col1, col2 = st.columns(2)
