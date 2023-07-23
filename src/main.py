@@ -109,8 +109,6 @@ def data_form():
 
         uid_gen = st.session_state['uid']
         with app_body:
-            st.markdown('### Data form')
-            st.markdown("*This page is for submitting data to the database.*")
 
             # unique id
             with st.container():
@@ -174,6 +172,11 @@ try:
             "3D models of reclaimed materials along with its metadata. "
             "This might help better documenting the materials for future use.")
         st.info("ℹ️ Note: This is a quick & dirty project, so there might be bugs.")
+
+        st.markdown('### Data form')
+        st.markdown("*This page is for submitting data to the database.*")
+
+        st.markdown('')
 
     if not st.session_state['is_authenticated']:
         st.warning('⚠️ Please log in to use the app! (Enter your student number and click Login)')
