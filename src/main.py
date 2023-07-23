@@ -42,6 +42,7 @@ gcp_handler.init()
 
 def submit_form(uid, spec_id, name, material, amount, unit, notes, uploaded_images, uploaded_model):
     msg = []
+    filename = f'{spec_id}-{name}-{st.session_state["student_number"]}'
     with st.spinner(text='Uploading data...'):
         try:
             if uploaded_images is None or len(uploaded_images) == 0:
@@ -69,14 +70,14 @@ def submit_form(uid, spec_id, name, material, amount, unit, notes, uploaded_imag
                         msg.append(
                             f"Image {uploaded_image.name} size is `{file_io.get_size_from_bytes(img_data)}`. Compressed to `{file_io.get_size_from_bytes(file_io.compress_image(img))}`.")
                         with open(file_path, 'rb') as f:
-                            gcp_handler.upload_to_bucket(ROOT, f, uid, f'{uid}-{img_count:02d}')
+                            gcp_handler.upload_to_bucket(ROOT, f, uid, f'{filename}-{img_count:02d}')
                     else:
                         uploaded_image.seek(0)
-                        gcp_handler.upload_to_bucket(ROOT, uploaded_image, uid, f'{uid}-{img_count:02d}')
+                        gcp_handler.upload_to_bucket(ROOT, uploaded_image, uid, f'{filename}-{img_count:02d}')
                     img_count += 1
 
                 # upload 3D model
-                gcp_handler.upload_to_bucket(ROOT, uploaded_model, uid, uid)
+                gcp_handler.upload_to_bucket(ROOT, uploaded_model, uid, filename)
 
                 # upload metadata to database
                 data = {
@@ -86,8 +87,8 @@ def submit_form(uid, spec_id, name, material, amount, unit, notes, uploaded_imag
                     'amount': amount,
                     'unit': unit,
                     'notes': notes,
-                    'images': gcp_handler.get_blob_urls(ROOT, uid, f'{uid}-*', ['.jpg', '.jpeg', '.png']),
-                    '3d_model': gcp_handler.get_blob_urls(ROOT, uid, uid, ['.obj'])
+                    'images': gcp_handler.get_blob_urls(ROOT, uid, f'{filename}-*', ['.jpg', '.jpeg', '.png']),
+                    '3d_model': gcp_handler.get_blob_urls(ROOT, uid, filename, ['.obj'])
                 }
                 db_handler.set_data(data, uid)
                 # clear cache
