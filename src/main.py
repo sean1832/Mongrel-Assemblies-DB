@@ -25,6 +25,8 @@ if 'app_name' not in st.session_state:
     st.session_state['app_name'] = 'mon-asm'
 if 'db_root' not in st.session_state:
     st.session_state['db_root'] = 'Inventory'
+if 'msg' not in st.session_state:
+    st.session_state['msg'] = ''
 
 APP_NAME = st.session_state['app_name']
 ROOT = st.session_state['db_root']
@@ -41,7 +43,7 @@ gcp_handler.init()
 
 
 def submit_form(uid, spec_id, name, material, amount, unit, notes, uploaded_images, uploaded_model):
-    msg = []
+    st.session_state['msg'] = ''
     filename = f'{spec_id}-{name}-{st.session_state["student_number"]}'
     with st.spinner(text='Uploading data...'):
         try:
@@ -67,8 +69,6 @@ def submit_form(uid, spec_id, name, material, amount, unit, notes, uploaded_imag
                     if file_io.get_size_from_bytes(img_data) > 5:  # 5MB
                         img = Image.open(io.BytesIO(img_data))
                         file_path = file_io.compress_image(img, quality=50)
-                        msg.append(
-                            f"Image {uploaded_image.name} size is `{file_io.get_size_from_bytes(img_data)}`. Compressed to `{file_io.get_size_from_bytes(file_io.compress_image(img))}`.")
                         with open(file_path, 'rb') as f:
                             gcp_handler.upload_to_bucket(ROOT, f, uid, f'{filename}-{img_count:02d}')
                     else:
@@ -93,9 +93,9 @@ def submit_form(uid, spec_id, name, material, amount, unit, notes, uploaded_imag
                 db_handler.set_data(data, uid)
                 # clear cache
                 st.cache_data.clear()
-                if msg:
-                    st.warning("\n\n".join(msg))
-                st.success('🚀Data submitted to database')
+                st.session_state['msg'] = '🚀Data submitted to database'
+                st.session_state['uid'] = utils.create_uuid()
+                st.experimental_rerun()
         except Exception as e:
             st.error(f"❌Error uploading data to database. \n\n{e}")
             st.stop()
@@ -109,21 +109,18 @@ def data_form():
 
         uid_gen = st.session_state['uid']
         with app_body:
-            st.markdown('### Data form')
-            st.markdown("*This page is for submitting data to the database.*")
 
             # unique id
-            with st.form(key='uid_form'):
+            with st.container():
                 uid = st.text_input(
-                    'UID (Override this if you want to update existing data, you must hit `Enter` to apply changes)',
+                    'UID (Override this if you want to update existing data)',
                     uid_gen,
                     help="**IMPORTANT: UID must be unique within the database! "
                          "Allocate same UID will override associated existing data**")
-                if uid == '' or st.form_submit_button(label='🔃 Generate new UID'):
+                if uid == '' or st.button(label='🔃 Generate new UID'):
                     st.session_state['uid'] = utils.create_uuid()
                     uid = st.session_state['uid']
                     st.experimental_rerun()
-
             # info fields
             with st.form(key='info_form'):
                 col1, col2 = st.columns(2)
@@ -176,11 +173,19 @@ try:
             "This might help better documenting the materials for future use.")
         st.info("ℹ️ Note: This is a quick & dirty project, so there might be bugs.")
 
+        st.markdown('### Data form')
+        st.markdown("*This page is for submitting data to the database.*")
+
+        st.markdown('')
+
     if not st.session_state['is_authenticated']:
         st.warning('⚠️ Please log in to use the app! (Enter your student number and click Login)')
         st.stop()
     else:
         data_form()
+        if st.session_state['msg'] != '':
+            st.success(st.session_state['msg'])
+            st.session_state['msg'] = ''
 
 
 except KeyboardInterrupt:
