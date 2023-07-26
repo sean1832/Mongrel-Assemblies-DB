@@ -145,7 +145,7 @@ def data_form():
                                                        type=["jpg", "jpeg", "png"],
                                                        accept_multiple_files=True)
                 with col2:
-                    uploaded_model = st.file_uploader('*📐 3D Model (.obj)', type=['obj'], accept_multiple_files=False)
+                    uploaded_model = st.file_uploader('*📐 3D Model (.3dm)', type=['3dm'], accept_multiple_files=False)
 
                 if st.form_submit_button(label='🚀 Submit'):
                     submit_form(uid, spec_id, name, material, amount, unit, notes, uploaded_images, uploaded_model)
