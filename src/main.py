@@ -6,6 +6,7 @@ import utils
 import gcp_handler
 import file_io
 from PIL import Image
+import traceback
 
 # set up page
 st.set_page_config(
@@ -57,18 +58,36 @@ def submit_form(uid, spec_id, name, material, amount, unit, notes, uploaded_imag
                 st.error('❌Count cannot be `0`.')
                 st.stop()
             else:
+                # upload images
                 img_count = 0
                 for uploaded_image in uploaded_images:
-                    # Check the image size, and compress if it's over 5MB
+                    # Convert to webp to reduce file size
                     img_data = uploaded_image.read()
                     img = Image.open(io.BytesIO(img_data))
                     file_path = file_io.compress_image(img, quality=90, format='webp')
+
+                    # create metadata
+                    img_meta = {
+                        'category': 'image',
+                        'original_name': uploaded_image.name,
+                        'original_size': utils.calculate_size(img_data),
+                        'original_md5': utils.calculate_md5(img_data)
+                    }
+
                     with open(file_path, 'rb') as f:
-                        gcp_handler.upload_to_bucket(ROOT, f, uid, f'{filename}-{img_count:02d}')
+                        gcp_handler.upload_to_bucket(ROOT, f, uid, f'{filename}-{img_count:02d}', metadata=img_meta)
                     img_count += 1
 
                 # upload 3D model
-                gcp_handler.upload_to_bucket(ROOT, uploaded_model, uid, filename, compress='gzip')
+                model_data = uploaded_model.read()
+                model_meta = {
+                    'category': '3d_model',
+                    'original_name': uploaded_model.name,
+                    'original_size': utils.calculate_size(model_data),
+                    'original_md5': utils.calculate_md5(model_data)
+                }
+                uploaded_model.seek(0)  # reset pointer
+                gcp_handler.upload_to_bucket(ROOT, uploaded_model, uid, filename, compress='gzip', metadata=model_meta)
 
                 # upload metadata to database
                 data = {
@@ -78,8 +97,11 @@ def submit_form(uid, spec_id, name, material, amount, unit, notes, uploaded_imag
                     'amount': amount,
                     'unit': unit,
                     'notes': notes,
-                    'images': gcp_handler.get_blob_urls(ROOT, uid, f'{filename}-*', ['.jpg', '.jpeg', '.png', '.webp']),
-                    '3d_model': gcp_handler.get_blob_urls(ROOT, uid, f'{filename}*', ['.obj', '.3dm', '.gz', '.xz'])
+                    'images': gcp_handler.get_blob_info(ROOT, uid, f'{filename}*', ['.jpg', '.jpeg', '.png', '.webp'], infos=['url']),
+                    '3d_model': gcp_handler.get_blob_info(ROOT, uid, f'{filename}*', ['.obj', '.3dm', '.gz', '.xz'], infos=['url']),
+                    '3d_model_original_md5': gcp_handler.get_blob_info(ROOT, uid, f'{filename}*', ['.obj', '.3dm', '.gz', '.xz'], infos=['original_md5']),
+                    '3d_model_compressed_md5': gcp_handler.get_blob_info(ROOT, uid, f'{filename}*', ['.obj', '.3dm', '.gz', '.xz'], infos=['md5']),
+                    'time': utils.get_current_time()
                 }
                 db_handler.set_data(data, uid)
                 # clear cache
@@ -88,7 +110,8 @@ def submit_form(uid, spec_id, name, material, amount, unit, notes, uploaded_imag
                 st.session_state['uid'] = utils.create_uuid()
                 st.experimental_rerun()
         except Exception as e:
-            st.error(f"❌Error uploading data to database. \n\n{e}")
+            tb = traceback.format_exc()
+            st.error(f"❌Error uploading data to database. **\n\n{e}**\n\n**Traceback**:\n ```{tb}```")
             st.stop()
 
 
