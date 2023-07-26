@@ -66,14 +66,10 @@ def submit_form(uid, spec_id, name, material, amount, unit, notes, uploaded_imag
                 for uploaded_image in uploaded_images:
                     # Check the image size, and compress if it's over 5MB
                     img_data = uploaded_image.read()
-                    if file_io.get_size_from_bytes(img_data) > 5:  # 5MB
-                        img = Image.open(io.BytesIO(img_data))
-                        file_path = file_io.compress_image(img, quality=50)
-                        with open(file_path, 'rb') as f:
-                            gcp_handler.upload_to_bucket(ROOT, f, uid, f'{filename}-{img_count:02d}')
-                    else:
-                        uploaded_image.seek(0)
-                        gcp_handler.upload_to_bucket(ROOT, uploaded_image, uid, f'{filename}-{img_count:02d}')
+                    img = Image.open(io.BytesIO(img_data))
+                    file_path = file_io.compress_image(img, quality=90, format='webp')
+                    with open(file_path, 'rb') as f:
+                        gcp_handler.upload_to_bucket(ROOT, f, uid, f'{filename}-{img_count:02d}')
                     img_count += 1
 
                 # upload 3D model
@@ -87,8 +83,8 @@ def submit_form(uid, spec_id, name, material, amount, unit, notes, uploaded_imag
                     'amount': amount,
                     'unit': unit,
                     'notes': notes,
-                    'images': gcp_handler.get_blob_urls(ROOT, uid, f'{filename}-*', ['.jpg', '.jpeg', '.png']),
-                    '3d_model': gcp_handler.get_blob_urls(ROOT, uid, filename, ['.obj'])
+                    'images': gcp_handler.get_blob_urls(ROOT, uid, f'{filename}-*', ['.jpg', '.jpeg', '.png', '.webp']),
+                    '3d_model': gcp_handler.get_blob_urls(ROOT, uid, f'{filename}*', ['.obj', '.3dm', '.gz', '.xz'])
                 }
                 db_handler.set_data(data, uid)
                 # clear cache

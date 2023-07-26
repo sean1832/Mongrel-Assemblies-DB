@@ -17,15 +17,14 @@ def get_size_from_bytes(file: bytes):
     return len(file) / (1024 * 1024.0)
 
 
-def compress_image(image, quality=30):
+def compress_image(image, quality=90, format='webp'):
     """Compresses the image to a smaller size."""
-    filename_no_extension = image.filename.split('.')[0]
-    st.write(f"filename: {filename_no_extension}")
-    filename = f"compressed.jpg"
+    filename_no_extension = os.path.splitext(image.filename)[0]
+    filename = f"{filename_no_extension}_compressed.{format}"
 
     _create_temp_dir()
 
-    image.save(f"temp/{filename}", "JPEG", optimize=True, quality=quality)
+    image.save(f"temp/{filename}", format, optimize=True, quality=quality)
     return f"temp/{filename}"
 
 
