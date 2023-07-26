@@ -7,6 +7,7 @@ import gcp_handler
 import file_io
 from PIL import Image
 import traceback
+import streamlit_toggle as toggle
 
 # set up page
 st.set_page_config(
@@ -28,6 +29,8 @@ if 'db_root' not in st.session_state:
     st.session_state['db_root'] = 'Inventory'
 if 'msg' not in st.session_state:
     st.session_state['msg'] = ''
+if 'lock_uid' not in st.session_state:
+    st.session_state['lock_uid'] = False
 
 APP_NAME = st.session_state['app_name']
 ROOT = st.session_state['db_root']
@@ -41,7 +44,6 @@ sidebar.sidebar()
 app = None
 db_handler.close_app_if_exists(APP_NAME)
 gcp_handler.init()
-
 
 def submit_form(uid, spec_id, name, material, amount, unit, notes, uploaded_images, uploaded_model):
     st.session_state['msg'] = ''
@@ -106,8 +108,12 @@ def submit_form(uid, spec_id, name, material, amount, unit, notes, uploaded_imag
                 db_handler.set_data(data, uid)
                 # clear cache
                 st.cache_data.clear()
-                st.session_state['msg'] = '🚀Data submitted to database'
-                st.session_state['uid'] = utils.create_uuid()
+
+                if not st.session_state['lock_uid']:
+                    st.session_state['uid'] = utils.create_uuid()
+                    st.session_state['msg'] = '🚀Data submitted to database! New UID generated.'
+                else:
+                    st.session_state['msg'] = '🚀Data submitted to database! UID is kept the same.'
                 st.experimental_rerun()
         except Exception as e:
             tb = traceback.format_exc()
@@ -131,10 +137,19 @@ def data_form():
                     uid_gen,
                     help="**IMPORTANT: UID must be unique within the database! "
                          "Allocate same UID will override associated existing data**")
-                if uid == '' or st.button(label='🔃 Generate new UID'):
-                    st.session_state['uid'] = utils.create_uuid()
-                    uid = st.session_state['uid']
-                    st.experimental_rerun()
+                col1, col2 = st.columns([0.2, 1])
+                with col1:
+                    if uid == '' or st.button(label='🔃 Generate new UID'):
+                        st.session_state['uid'] = utils.create_uuid()
+                        uid = st.session_state['uid']
+                        st.experimental_rerun()
+                with col2:
+                    if toggle.st_toggle_switch('🔒 Lock UID', key='lock_uid', label_after=True):
+                        if 'lock_uid' not in st.session_state:
+                            st.session_state['lock_uid'] = True
+                    else:
+                        if 'lock_uid' not in st.session_state:
+                            st.session_state['lock_uid'] = False
             # info fields
             with st.form(key='info_form'):
                 col1, col2 = st.columns(2)
