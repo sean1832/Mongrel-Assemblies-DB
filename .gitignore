@@ -1,6 +1,7 @@
 # custom
 secret/
 .streamlit/secrets.toml
+temp/
 
 
 # Byte-compiled / optimized / DLL files

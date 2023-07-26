@@ -4,6 +4,7 @@ import os
 import json
 import google_handler
 import fnmatch
+import file_io
 
 def init():
     creds_str = google_handler.get_gcp_creds()
@@ -19,20 +20,43 @@ def init():
     st.session_state['storage_client'] = storage_client
 
 
-def upload_to_bucket(root_dir, file, uid, name):
+def upload_to_bucket(root_dir, file, uid, name, compress=None):
     dir = f"{root_dir}/{uid}"
-
     try:
         # get file extension
         extension = os.path.splitext(file.name)[1]
         filename = name + extension
 
+        compressed_file_path = None
+
+        if compress:
+            # Compress file
+            if compress == 'gzip':
+                compressed_file_path = file_io.compress_to_gzip(file)
+                filename += '.gz'  # Add '.gz' extension to the filename
+            elif compress == 'xz':
+                compressed_file_path = file_io.compress_to_xz(file)
+                filename += '.xz'  # Add '.xz' extension to the filename
+            else:
+                raise ValueError(f'Unsupported compression type: {compress}. Supported types are "gzip" and "xz".'
+                                 f'if you do not want to compress the file, set compress=None')
+
         storage_client = st.session_state['storage_client']
         bucket = storage_client.get_bucket(st.secrets['gcp']['bucket_name'])
         blob = bucket.blob(f"{dir}/{filename}")
-        blob.upload_from_file(file)
+
+        if compress:
+            # Open the compressed file in read-binary mode for upload
+            with open(compressed_file_path, 'rb') as file_obj:
+                blob.upload_from_file(file_obj)
+            # Delete the compressed file
+            os.remove(compressed_file_path)
+        else:
+            # If compress is None or False, upload the file as is
+            blob.upload_from_file(file)
+
     except Exception as e:
-        st.error(e)
+        st.error(f'❌Failed to upload to the bucket: {e}')
         st.stop()
 
 

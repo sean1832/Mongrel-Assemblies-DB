@@ -77,7 +77,7 @@ def submit_form(uid, spec_id, name, material, amount, unit, notes, uploaded_imag
                     img_count += 1
 
                 # upload 3D model
-                gcp_handler.upload_to_bucket(ROOT, uploaded_model, uid, filename)
+                gcp_handler.upload_to_bucket(ROOT, uploaded_model, uid, filename, compress='gzip')
 
                 # upload metadata to database
                 data = {
@@ -186,7 +186,6 @@ try:
         if st.session_state['msg'] != '':
             st.success(st.session_state['msg'])
             st.session_state['msg'] = ''
-
 
 except KeyboardInterrupt:
     pass
