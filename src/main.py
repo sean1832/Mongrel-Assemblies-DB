@@ -47,12 +47,7 @@ def submit_form(uid, spec_id, name, material, amount, unit, notes, uploaded_imag
     filename = f'{spec_id}-{name}-{st.session_state["student_number"]}'
     with st.spinner(text='Uploading data...'):
         try:
-            if uploaded_images is None or len(uploaded_images) == 0:
-                st.error('❌Please upload an reference image, '
-                         'this could be the photograph of the material '
-                         'or screenshot of the 3D model.')
-                st.stop()
-            elif len(uploaded_images) > 10:
+            if len(uploaded_images) > 10:
                 st.error('❌Maximum 10 images allowed.')
                 st.stop()
             elif uploaded_model is None:
