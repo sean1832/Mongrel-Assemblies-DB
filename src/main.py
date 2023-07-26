@@ -104,7 +104,7 @@ def data_form():
             # unique id
             with st.container():
                 uid = st.text_input(
-                    'UID (Override this if you want to update existing data)',
+                    '*UID (Override this if you want to update existing data)',
                     uid_gen,
                     help="**IMPORTANT: UID must be unique within the database! "
                          "Allocate same UID will override associated existing data**")
@@ -118,23 +118,23 @@ def data_form():
                 with col1:
                     col3, col4, col5 = st.columns([1, 2, 1.5])
                     with col3:
-                        spec_id = st.text_input('Specification ID',
+                        spec_id = st.text_input('*Specification ID',
                                                 help='What is the specification ID of the component?',
                                                 placeholder='e.g. W01-F')
                         spec_id = spec_id.upper()
                     with col4:
-                        name = st.text_input('Name',
+                        name = st.text_input('*Name',
                                              help='What is the name of the component?',
                                              placeholder='e.g. Shop Front Window Frame')
                     with col5:
                         mat_list = ['Timber', 'Steel', 'Glass', 'Plaster', 'Brick', 'Concrete', 'polymers', 'Other']
-                        material = st.selectbox('Material', mat_list, help='What material is the component made of?')
+                        material = st.selectbox('*Material', mat_list, help='What material is the component made of?')
 
                     col3, col4 = st.columns([2, 1])
                     with col3:
-                        amount = st.number_input('Amount', step=1, min_value=0, help='How many components are there?')
+                        amount = st.number_input('*Amount', step=1, min_value=0, help='How many components are there?')
                     with col4:
-                        unit = st.selectbox('Unit', ['piece', 'm^2', 'm^3', 'kg'], help='What is the unit of the amount?')
+                        unit = st.selectbox('*Unit', ['piece', 'm^2', 'm^3', 'kg'], help='What is the unit of the amount?')
                 with col2:
                     notes = st.text_area('Notes/ Description', height=130, help='Notes or description for extra info')
 
@@ -145,7 +145,7 @@ def data_form():
                                                        type=["jpg", "jpeg", "png"],
                                                        accept_multiple_files=True)
                 with col2:
-                    uploaded_model = st.file_uploader('📐 3D Model (.obj)', type=['obj'], accept_multiple_files=False)
+                    uploaded_model = st.file_uploader('*📐 3D Model (.obj)', type=['obj'], accept_multiple_files=False)
 
                 if st.form_submit_button(label='🚀 Submit'):
                     submit_form(uid, spec_id, name, material, amount, unit, notes, uploaded_images, uploaded_model)
@@ -163,9 +163,7 @@ try:
             "3D models of reclaimed materials along with its metadata. "
             "This might help better documenting the materials for future use.")
         st.info("ℹ️ Note: This is a quick & dirty project, so there might be bugs.")
-
-        st.markdown('### Data form')
-        st.markdown("*This page is for submitting data to the database.*")
+        st.markdown("This page is for submitting data to the database. Field contains `*` are required.")
 
         st.markdown('')
 
