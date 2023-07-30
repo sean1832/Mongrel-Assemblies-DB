@@ -8,6 +8,7 @@ import file_io
 from PIL import Image
 import traceback
 import streamlit_toggle as toggle
+import pd_table
 
 # set up page
 st.set_page_config(
@@ -128,6 +129,14 @@ def submit_form(uid, spec_id, name, material, amount, unit, notes, uploaded_imag
             st.stop()
 
 
+def db_selector_form():
+    """Quick Edit Form"""
+    with st.expander("📝 Modify from database"):
+        df = pd_table.table(st.container())
+        return df
+
+
+
 def uid_form():
     # unique id
     if "uid" not in st.session_state:
@@ -156,8 +165,9 @@ def uid_form():
     return uid
 
 
-def info_form(uid):
+def info_form(uid, df):
     # info fields
+    uid_exists = df['uid'].str.contains(uid).any()
     with st.form(key='info_form'):
         col1, col2 = st.columns(2)
         with col1:
@@ -200,8 +210,10 @@ def data_form():
     # data form
     if st.session_state['is_authenticated']:
         with app_body:
+            df = db_selector_form()
             uid = uid_form()
-            info_form(uid)
+            info_form(uid, df)
+
 
 try:
     db_handler.init_db(APP_NAME)

@@ -1,7 +1,8 @@
 import streamlit as st
 import db_handler
-import file_io
 import sidebar
+import pd_table
+
 try:
     sidebar.sidebar()
 
@@ -19,44 +20,7 @@ try:
         with body:
             st.warning("⚠️ You are not authenticated. Please log in to view the database.")
     else:
-        with body:
-            if st.button("🔃 Refresh database"):
-                st.cache_data.clear()
-                st.experimental_rerun()
-
-            with st.spinner("fetching from database..."):
-                # fetch data from database
-                order_by = ['student_number', 'spec_id', 'name', 'material', 'amount', 'unit', 'notes', 'uid', 'images', '3d_model']
-                df = db_handler.get_data(order_by)
-
-            col1, col2, col3 = st.columns([0.1, 0.1, 1])
-            with col1:
-                file_io.export_to_csv(df, 'database')
-            with col2:
-                file_io.export_to_excel(df, "database")
-            # with col3:
-            #     file_io.export_to_json(df, "database.json")
-
-            # Get list of column names
-            df_cols = df.columns.tolist()
-
-            # Initialize column_config dictionary
-            column_config = {}
-
-            # Loop through the column names
-            for col in df_cols:
-                if 'images' in col:  # if column is an images column
-                    column_config[col] = st.column_config.ImageColumn()
-                elif '3d_model' in col:  # if column is a 3d_model column
-                    column_config[col] = st.column_config.LinkColumn(
-                        "Download 3D Model", help="This is a link to the 3D model"
-                    )
-
-            st.dataframe(
-                df,
-                column_config=column_config,
-                use_container_width=True
-            )
+        pd_table.table(body)
 except KeyboardInterrupt:
     pass
 finally:
