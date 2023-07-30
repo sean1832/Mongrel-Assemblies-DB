@@ -3,6 +3,13 @@ import streamlit as st
 import json
 import db_handler
 import io
+import gzip
+import lzma
+
+
+def _create_temp_dir():
+    if not os.path.exists('temp'):
+        os.makedirs('temp')
 
 
 def get_size_from_bytes(file: bytes):
@@ -10,16 +17,14 @@ def get_size_from_bytes(file: bytes):
     return len(file) / (1024 * 1024.0)
 
 
-def compress_image(image, quality=30):
+def compress_image(image, quality=90, format='webp'):
     """Compresses the image to a smaller size."""
-    filename_no_extension = image.filename.split('.')[0]
-    st.write(f"filename: {filename_no_extension}")
-    filename = f"compressed.jpg"
+    filename_no_extension = os.path.splitext(image.filename)[0]
+    filename = f"{filename_no_extension}_compressed.{format}"
 
-    if not os.path.exists('temp'):
-        os.makedirs('temp')
+    _create_temp_dir()
 
-    image.save(f"temp/{filename}", "JPEG", optimize=True, quality=quality)
+    image.save(f"temp/{filename}", format, optimize=True, quality=quality)
     return f"temp/{filename}"
 
 
@@ -51,6 +56,23 @@ def export_to_excel(df, filename):
     st.download_button("💹Download Excel", buffer, f"{filename}.xlsx",
                        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
+
+def compress_to_xz(file):
+    """Compresses the file to a xz file using lzma compression. This is smaller but slower than gzip."""
+    _create_temp_dir()
+    compressed_filename = file.name + '.xz'
+    with lzma.open(f'temp/{compressed_filename}', 'wb') as f_out:
+        f_out.write(file.getvalue())
+    return f'temp/{compressed_filename}'
+
+
+def compress_to_gzip(file):
+    """Compresses the file to a gzip file. This is faster but larger than xz. This is the default compression method."""
+    _create_temp_dir()
+    compressed_filename = file.name + '.gz'
+    with gzip.open(f'temp/{compressed_filename}', 'wb') as f_out:
+        f_out.write(file.getvalue())
+    return f'temp/{compressed_filename}'
 
 # def export_to_json(df, filename):
 #     """Exports the data to a json file."""

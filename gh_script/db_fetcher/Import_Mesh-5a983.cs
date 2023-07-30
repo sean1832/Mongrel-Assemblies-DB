@@ -11,6 +11,7 @@ using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
 
 using System.Linq;
+using System.IO;
 
 
 /// <summary>
@@ -53,32 +54,63 @@ public abstract class Script_Instance_5a983 : GH_ScriptInstance
   /// they will have a default value.
   /// </summary>
   #region Runscript
-  private void RunScript(List<string> localPaths, bool import, ref object mesh)
+  private void RunScript(List<string> localPaths, bool import, ref object out_geos)
   {
 
     if (import)
     {
-      meshes.Clear();
+      geometries.Clear();
+      msg = "";
+      int pathIndex = 0;
       foreach (var path in localPaths)
       {
-        var _geometries = ImportMesh(path);
-
-        foreach (var geo in _geometries)
+        GH_Path ghPath = new GH_Path(pathIndex);
+        if (path.EndsWith(".obj"))
         {
-          if (geo is Mesh)
+          var _geometries = ImportMesh(path);
+          var combinedMesh = new Mesh();
+          foreach (var geo in _geometries)
           {
-            meshes.Add(geo as Mesh);
+            combinedMesh.Append(geo as Mesh);
+          }
+          geometries.Add(combinedMesh, ghPath);
+        }
+        else if (path.EndsWith(".3dm"))
+        {
+          var _geometries = Import3DM(path);
+          if (_geometries.Count == 0)
+          {
+            Component.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No geometry found in the file\n" + path);
+            return;
+          }
+          else
+          {
+            foreach (var geo in _geometries)
+            {
+              geometries.Add(geo, ghPath);
+            }
           }
         }
+        else
+        {
+          msg = "File format not supported!";
+          Component.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "File format not supported yet");
+        }
+        pathIndex++;
       }
+      // After the import is done, turn off the import toggle
+      ChangeInputToggle("import", false);
+      msg = "Imported " + geometries.BranchCount.ToString() + " files";
     }
-
-    mesh = meshes;
-    
+    out_geos = geometries;
+    Component.Message = msg;
   }
   #endregion
   #region Additional
-  private List<Mesh> meshes = new List<Mesh>();
+  //private List<GeometryBase> geometries = new List<GeometryBase>();
+  private DataTree<GeometryBase> geometries = new DataTree<GeometryBase>();
+
+  private string msg = "";
 
   private List<GeometryBase> ImportMesh(string path)
   {
@@ -110,6 +142,50 @@ public abstract class Script_Instance_5a983 : GH_ScriptInstance
       RhinoDoc.ActiveDoc.Objects.Delete(selectObj, true);
     }
     return geos;
+  }
+
+  private List<GeometryBase> Import3DM(string path)
+  {
+    RhinoDoc.ActiveDoc.Objects.UnselectAll();
+    string cmd = "-_Import \"" + path + "\" _Enter";
+    Rhino.RhinoApp.RunScript(cmd, false);
+
+    cmd = "-_Group _Enter _Enter";
+    Rhino.RhinoApp.RunScript(cmd, false);
+
+    // get the selected objects
+    var selectObjs = RhinoDoc.ActiveDoc.Objects.GetSelectedObjects(false, false).ToList();
+    List<GeometryBase> geos = new List<GeometryBase>();
+    foreach (var selectObj in selectObjs)
+    {
+      GeometryBase geo = selectObj.Geometry;
+      geos.Add(geo);
+      RhinoDoc.ActiveDoc.Objects.Delete(selectObj, true);
+    }
+    return geos;
+  }
+
+  public void ChangeInputToggle(string targetInputName, bool state)
+  {
+    List<IGH_Param> inputs = Component.Params.Input;
+    foreach (IGH_Param input in inputs)
+    {
+      if (input.Name != targetInputName) continue;
+      IList<IGH_Param> sources = input.Sources;
+      foreach (IGH_Param source in sources)
+      {
+        IGH_Attributes attributes = source.Attributes;
+        IGH_DocumentObject comp_obj = attributes.GetTopLevel.DocObject;
+        if (comp_obj.GetType() == typeof(Grasshopper.Kernel.Special.GH_BooleanToggle))
+        {
+          var toggle = source as Grasshopper.Kernel.Special.GH_BooleanToggle;
+          if (toggle == null) continue;
+          if (toggle.Value == state) continue;
+          toggle.Value = state;
+          comp_obj.ExpireSolution(true);
+        }
+      }
+    }
   }
   #endregion
 }

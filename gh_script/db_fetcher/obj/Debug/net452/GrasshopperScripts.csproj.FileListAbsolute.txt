@@ -1,0 +1,5 @@
+E:\Python\3.9\Mongrel Assemblies DB\gh_script\db_fetcher\obj\Debug\net452\GrasshopperScripts.csproj.AssemblyReference.cache
+E:\Python\3.9\Mongrel Assemblies DB\gh_script\db_fetcher\obj\Debug\net452\GrasshopperScripts.GeneratedMSBuildEditorConfig.editorconfig
+E:\Python\3.9\Mongrel Assemblies DB\gh_script\db_fetcher\obj\Debug\net452\GrasshopperScripts.AssemblyInfoInputs.cache
+E:\Python\3.9\Mongrel Assemblies DB\gh_script\db_fetcher\obj\Debug\net452\GrasshopperScripts.AssemblyInfo.cs
+E:\Python\3.9\Mongrel Assemblies DB\gh_script\db_fetcher\obj\Debug\net452\GrasshopperScripts.csproj.CoreCompileInputs.cache

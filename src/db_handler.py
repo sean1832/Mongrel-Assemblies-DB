@@ -24,11 +24,17 @@ def init_db(name='default'):
         st.session_state['db'] = db
 
 
+def get_user_ref(student_number: str):
+    """Returns the user reference from the database."""
+    db = st.session_state['db']
+    user_ref = db.collection('Users').document(student_number)
+    return user_ref
+
+
 def set_data(data: dict, uid: str):
     """Sets the data in the database. This function should be called when the user submits the data form."""
     student_number = st.session_state['student_number']
-    db = st.session_state['db']
-    user_ref = db.collection('Users').document(student_number)
+    user_ref = get_user_ref(student_number)
 
     # Check if user is admin
     is_admin = False
@@ -41,6 +47,15 @@ def set_data(data: dict, uid: str):
     # Store data
     item_ref = user_ref.collection('Items').document(uid)
     item_ref.set(data)
+
+
+def update_data(data: dict, uid: str, student_number: str):
+    """Updates the data in the database. This function should be called when the user modified the database table."""
+    user_ref = get_user_ref(student_number)
+
+    # update data
+    item_ref = user_ref.collection('Items').document(uid)
+    item_ref.update(data)
 
 
 def explode_list(df, col_name):
@@ -95,6 +110,7 @@ def get_data(columns_order=['student_number', 'material', 'amount', 'notes', 'ui
     df = explode_list(df, '3d_model')
 
     return df
+
 
 def close_app_if_exists(name='default'):
     """Closes the Firebase app if it exists. This function should be called at the beginning of the script."""
