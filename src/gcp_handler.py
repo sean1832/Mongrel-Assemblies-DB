@@ -52,7 +52,7 @@ def upload_to_bucket(root_dir, file, uid, name, metadata=None, compress=None):
         if compress:
             # Open the compressed file in read-binary mode for upload
             with open(compressed_file_path, 'rb') as file_obj:
-                file_content = file_obj.read() # read file content once
+                file_content = file_obj.read()  # read file content once
 
                 default_meta = {
                     'md5_hash': utils.calculate_md5(file_content),
@@ -92,7 +92,6 @@ def upload_to_bucket(root_dir, file, uid, name, metadata=None, compress=None):
         tb = traceback.format_exc()
         st.error(f'❌Failed to upload to the bucket: **{e}** \n\n **Traceback**:\n ```{tb}```')
         st.stop()
-
 
 
 def download_from_bucket(root_dir, filename, uid):
@@ -141,6 +140,10 @@ def get_blob_md5(blobs):
     return [blob.md5_hash for blob in blobs]
 
 
+def get_blob_metadata(blobs):
+    return [blob.metadata for blob in blobs]
+
+
 def get_blob_info(root_dir, uid, name_pattern, extensions, infos):
     storage_client = st.session_state['storage_client']
     bucket = storage_client.get_bucket(st.secrets['gcp']['bucket_name'])
@@ -151,11 +154,6 @@ def get_blob_info(root_dir, uid, name_pattern, extensions, infos):
     for info in infos:
         if info == 'url':
             return get_public_urls_from_blobs(blobs)
-        elif info == 'md5':
-            return get_blob_md5(blobs)
-        elif info == 'size':
-            return [blob.size for blob in blobs]
-        elif info == 'original_md5':
-            return [blob.metadata.get('original_md5') for blob in blobs]
         else:
-            raise ValueError(f'Unsupported info type: {info}. Supported types are "url", "md5" and "size".')
+            metas = get_blob_metadata(blobs)
+            return [meta[info] for meta in metas]
