@@ -87,7 +87,7 @@ public abstract class Script_Instance_82ec0 : GH_ScriptInstance
             {
               countExisting += 1;
               client.DownloadFile(new Uri(url), tempDir + "/" + filename);
-              files.Add(tempDir + "/" + filename);
+              
               localHashes.Add(existingHash);
             }
           }
@@ -95,9 +95,10 @@ public abstract class Script_Instance_82ec0 : GH_ScriptInstance
           {
             countExisting += 1;
             client.DownloadFile(new Uri(url), tempDir + "/" + filename);
-            files.Add(tempDir + "/" + filename);
           }
+          files.Add(tempDir + "/" + filename);
         }
+
       }
       catch (Exception e)
       {
