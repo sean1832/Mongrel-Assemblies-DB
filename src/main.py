@@ -102,7 +102,7 @@ def submit_form(uid, spec_id, name, material, amount, unit, notes, uploaded_imag
                     'images': gcp_handler.get_blob_info(ROOT, uid, f'{filename}*', ['.jpg', '.jpeg', '.png', '.webp'], infos=['url']),
                     '3d_model': gcp_handler.get_blob_info(ROOT, uid, f'{filename}*', ['.obj', '.3dm', '.gz', '.xz'], infos=['url']),
                     '3d_model_original_md5': gcp_handler.get_blob_info(ROOT, uid, f'{filename}*', ['.obj', '.3dm', '.gz', '.xz'], infos=['original_md5']),
-                    '3d_model_compressed_md5': gcp_handler.get_blob_info(ROOT, uid, f'{filename}*', ['.obj', '.3dm', '.gz', '.xz'], infos=['md5']),
+                    '3d_model_compressed_md5': gcp_handler.get_blob_info(ROOT, uid, f'{filename}*', ['.obj', '.3dm', '.gz', '.xz'], infos=['md5_hash']),
                     'time': utils.get_current_time()
                 }
                 db_handler.set_data(data, uid)
