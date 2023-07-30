@@ -149,13 +149,16 @@ def uid_form():
             uid_gen,
             help="**IMPORTANT: UID must be unique within the database! "
                  "Allocate same UID will override associated existing data**")
-        col1, col2 = st.columns([0.2, 1])
+        col1, col2, col3 = st.columns([0.15, 0.2, 0.8])
         with col1:
             if uid == '' or st.button(label='🔃 Generate new UID'):
                 st.session_state['uid'] = utils.create_uuid()
                 uid = st.session_state['uid']
                 st.experimental_rerun()
         with col2:
+            if st.button('📝 Check is UID exists in database'):
+                st.experimental_rerun()
+        with col3:
             if toggle.st_toggle_switch('🔒 Lock UID', key='lock_uid', label_after=True):
                 if 'lock_uid' not in st.session_state:
                     st.session_state['lock_uid'] = True
@@ -168,6 +171,25 @@ def uid_form():
 def info_form(uid, df):
     # info fields
     uid_exists = df['uid'].str.contains(uid).any()
+
+    mat_list = ['Timber', 'Steel', 'Glass', 'Plaster', 'Brick', 'Concrete', 'polymers', 'Other']
+    unit_list = ['piece', 'm', 'm^2', 'm^3', 'kg']
+    if uid_exists:
+        st.warning('⚠️ UID already exists in database. Editing existing data.')
+        spec_id_default = df[df['uid'] == uid]['spec_id'].values[0]
+        name_default = df[df['uid'] == uid]['name'].values[0]
+        # index of material in list
+        material_default = mat_list.index(df[df['uid'] == uid]['material'].values[0])
+        amount_default = df[df['uid'] == uid]['amount'].values[0]
+        unit_default = unit_list.index(df[df['uid'] == uid]['unit'].values[0])
+        notes_default = df[df['uid'] == uid]['notes'].values[0]
+    else:
+        spec_id_default = ''
+        name_default = ''
+        material_default = 0
+        amount_default = 0
+        unit_default = 0
+        notes_default = ''
     with st.form(key='info_form'):
         col1, col2 = st.columns(2)
         with col1:
@@ -175,23 +197,23 @@ def info_form(uid, df):
             with col3:
                 spec_id = st.text_input('*Specification ID',
                                         help='What is the specification ID of the component?',
-                                        placeholder='e.g. W01-F')
+                                        placeholder='e.g. W01-F', value=spec_id_default)
                 spec_id = spec_id.upper()
             with col4:
                 name = st.text_input('*Name',
                                      help='What is the name of the component?',
-                                     placeholder='e.g. Shop Front Window Frame')
+                                     placeholder='e.g. Shop Front Window Frame', value=name_default)
             with col5:
-                mat_list = ['Timber', 'Steel', 'Glass', 'Plaster', 'Brick', 'Concrete', 'polymers', 'Other']
-                material = st.selectbox('*Material', mat_list, help='What material is the component made of?')
+
+                material = st.selectbox('*Material', mat_list, help='What material is the component made of?', index=material_default)
 
             col3, col4 = st.columns([2, 1])
             with col3:
-                amount = st.number_input('*Amount', step=1, min_value=0, help='How many components are there?')
+                amount = st.number_input('*Amount', step=1, min_value=0, help='How many components are there?', value=amount_default)
             with col4:
-                unit = st.selectbox('*Unit', ['piece', 'm^2', 'm^3', 'kg'], help='What is the unit of the amount?')
+                unit = st.selectbox('*Unit', unit_list, help='What is the unit of the amount?', index=unit_default)
         with col2:
-            notes = st.text_area('Notes/ Description', height=130, help='Notes or description for extra info')
+            notes = st.text_area('Notes/ Description', height=130, help='Notes or description for extra info', value=notes_default)
 
         # image and 3D model uploader
         col1, col2 = st.columns(2)
