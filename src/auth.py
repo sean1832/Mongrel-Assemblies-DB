@@ -31,7 +31,7 @@ def login():
             )
             if st.form_submit_button('Login'):
                 if auth_user(username):
-                    st.session_state['student_number'] = username
+                    st.session_state['student_number'] = username.lower()
                     st.session_state['is_authenticated'] = True
                     st.experimental_rerun()
                     st.cache_data.clear()
