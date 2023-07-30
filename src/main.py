@@ -45,6 +45,7 @@ app = None
 db_handler.close_app_if_exists(APP_NAME)
 gcp_handler.init()
 
+
 def submit_form(uid, spec_id, name, material, amount, unit, notes, uploaded_images, uploaded_model):
     st.session_state['msg'] = ''
     filename = f'{spec_id}-{name}-{st.session_state["student_number"]}'
@@ -99,10 +100,16 @@ def submit_form(uid, spec_id, name, material, amount, unit, notes, uploaded_imag
                     'amount': amount,
                     'unit': unit,
                     'notes': notes,
-                    'images': gcp_handler.get_blob_info(ROOT, uid, f'{filename}*', ['.jpg', '.jpeg', '.png', '.webp'], infos=['url']),
-                    '3d_model': gcp_handler.get_blob_info(ROOT, uid, f'{filename}*', ['.obj', '.3dm', '.gz', '.xz'], infos=['url']),
-                    '3d_model_original_md5': gcp_handler.get_blob_info(ROOT, uid, f'{filename}*', ['.obj', '.3dm', '.gz', '.xz'], infos=['original_md5']),
-                    '3d_model_compressed_md5': gcp_handler.get_blob_info(ROOT, uid, f'{filename}*', ['.obj', '.3dm', '.gz', '.xz'], infos=['md5_hash']),
+                    'images': gcp_handler.get_blob_info(ROOT, uid, f'{filename}*', ['.jpg', '.jpeg', '.png', '.webp'],
+                                                        infos=['url']),
+                    '3d_model': gcp_handler.get_blob_info(ROOT, uid, f'{filename}*', ['.obj', '.3dm', '.gz', '.xz'],
+                                                          infos=['url']),
+                    '3d_model_original_md5': gcp_handler.get_blob_info(ROOT, uid, f'{filename}*',
+                                                                       ['.obj', '.3dm', '.gz', '.xz'],
+                                                                       infos=['original_md5']),
+                    '3d_model_compressed_md5': gcp_handler.get_blob_info(ROOT, uid, f'{filename}*',
+                                                                         ['.obj', '.3dm', '.gz', '.xz'],
+                                                                         infos=['md5_hash']),
                     'time': utils.get_current_time()
                 }
                 db_handler.set_data(data, uid)
@@ -121,72 +128,80 @@ def submit_form(uid, spec_id, name, material, amount, unit, notes, uploaded_imag
             st.stop()
 
 
+def uid_form():
+    # unique id
+    if "uid" not in st.session_state:
+        st.session_state['uid'] = utils.create_uuid()
+
+    uid_gen = st.session_state['uid']
+    with st.container():
+        uid = st.text_input(
+            '*UID (Override this if you want to update existing data)',
+            uid_gen,
+            help="**IMPORTANT: UID must be unique within the database! "
+                 "Allocate same UID will override associated existing data**")
+        col1, col2 = st.columns([0.2, 1])
+        with col1:
+            if uid == '' or st.button(label='🔃 Generate new UID'):
+                st.session_state['uid'] = utils.create_uuid()
+                uid = st.session_state['uid']
+                st.experimental_rerun()
+        with col2:
+            if toggle.st_toggle_switch('🔒 Lock UID', key='lock_uid', label_after=True):
+                if 'lock_uid' not in st.session_state:
+                    st.session_state['lock_uid'] = True
+            else:
+                if 'lock_uid' not in st.session_state:
+                    st.session_state['lock_uid'] = False
+    return uid
+
+
+def info_form(uid):
+    # info fields
+    with st.form(key='info_form'):
+        col1, col2 = st.columns(2)
+        with col1:
+            col3, col4, col5 = st.columns([1, 2, 1.5])
+            with col3:
+                spec_id = st.text_input('*Specification ID',
+                                        help='What is the specification ID of the component?',
+                                        placeholder='e.g. W01-F')
+                spec_id = spec_id.upper()
+            with col4:
+                name = st.text_input('*Name',
+                                     help='What is the name of the component?',
+                                     placeholder='e.g. Shop Front Window Frame')
+            with col5:
+                mat_list = ['Timber', 'Steel', 'Glass', 'Plaster', 'Brick', 'Concrete', 'polymers', 'Other']
+                material = st.selectbox('*Material', mat_list, help='What material is the component made of?')
+
+            col3, col4 = st.columns([2, 1])
+            with col3:
+                amount = st.number_input('*Amount', step=1, min_value=0, help='How many components are there?')
+            with col4:
+                unit = st.selectbox('*Unit', ['piece', 'm^2', 'm^3', 'kg'], help='What is the unit of the amount?')
+        with col2:
+            notes = st.text_area('Notes/ Description', height=130, help='Notes or description for extra info')
+
+        # image and 3D model uploader
+        col1, col2 = st.columns(2)
+        with col1:
+            uploaded_images = st.file_uploader("🖼️ Reference photographs or images (max 10)",
+                                               type=["jpg", "jpeg", "png"],
+                                               accept_multiple_files=True)
+        with col2:
+            uploaded_model = st.file_uploader('*📐 3D Model (.3dm)', type=['3dm'], accept_multiple_files=False)
+
+        if st.form_submit_button(label='🚀 Submit'):
+            submit_form(uid, spec_id, name, material, amount, unit, notes, uploaded_images, uploaded_model)
+
+
 def data_form():
     # data form
     if st.session_state['is_authenticated']:
-        if "uid" not in st.session_state:
-            st.session_state['uid'] = utils.create_uuid()
-
-        uid_gen = st.session_state['uid']
         with app_body:
-
-            # unique id
-            with st.container():
-                uid = st.text_input(
-                    '*UID (Override this if you want to update existing data)',
-                    uid_gen,
-                    help="**IMPORTANT: UID must be unique within the database! "
-                         "Allocate same UID will override associated existing data**")
-                col1, col2 = st.columns([0.2, 1])
-                with col1:
-                    if uid == '' or st.button(label='🔃 Generate new UID'):
-                        st.session_state['uid'] = utils.create_uuid()
-                        uid = st.session_state['uid']
-                        st.experimental_rerun()
-                with col2:
-                    if toggle.st_toggle_switch('🔒 Lock UID', key='lock_uid', label_after=True):
-                        if 'lock_uid' not in st.session_state:
-                            st.session_state['lock_uid'] = True
-                    else:
-                        if 'lock_uid' not in st.session_state:
-                            st.session_state['lock_uid'] = False
-            # info fields
-            with st.form(key='info_form'):
-                col1, col2 = st.columns(2)
-                with col1:
-                    col3, col4, col5 = st.columns([1, 2, 1.5])
-                    with col3:
-                        spec_id = st.text_input('*Specification ID',
-                                                help='What is the specification ID of the component?',
-                                                placeholder='e.g. W01-F')
-                        spec_id = spec_id.upper()
-                    with col4:
-                        name = st.text_input('*Name',
-                                             help='What is the name of the component?',
-                                             placeholder='e.g. Shop Front Window Frame')
-                    with col5:
-                        mat_list = ['Timber', 'Steel', 'Glass', 'Plaster', 'Brick', 'Concrete', 'polymers', 'Other']
-                        material = st.selectbox('*Material', mat_list, help='What material is the component made of?')
-
-                    col3, col4 = st.columns([2, 1])
-                    with col3:
-                        amount = st.number_input('*Amount', step=1, min_value=0, help='How many components are there?')
-                    with col4:
-                        unit = st.selectbox('*Unit', ['piece', 'm^2', 'm^3', 'kg'], help='What is the unit of the amount?')
-                with col2:
-                    notes = st.text_area('Notes/ Description', height=130, help='Notes or description for extra info')
-
-                # image and 3D model uploader
-                col1, col2 = st.columns(2)
-                with col1:
-                    uploaded_images = st.file_uploader("🖼️ Reference photographs or images (max 10)",
-                                                       type=["jpg", "jpeg", "png"],
-                                                       accept_multiple_files=True)
-                with col2:
-                    uploaded_model = st.file_uploader('*📐 3D Model (.3dm)', type=['3dm'], accept_multiple_files=False)
-
-                if st.form_submit_button(label='🚀 Submit'):
-                    submit_form(uid, spec_id, name, material, amount, unit, notes, uploaded_images, uploaded_model)
+            uid = uid_form()
+            info_form(uid)
 
 try:
     db_handler.init_db(APP_NAME)
