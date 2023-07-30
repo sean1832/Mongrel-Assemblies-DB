@@ -1,4 +1,5 @@
 # custom
+dist/
 secret/
 .streamlit/secrets.toml
 temp/
