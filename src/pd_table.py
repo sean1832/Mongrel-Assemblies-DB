@@ -89,6 +89,7 @@ def table(container):
                     for data in modified_data:
                         db_handler.update_data(data['modified_fields'], data['uid'], data['student_number'])
                     st.success("✅ Successfully updated database!")
+                    st.cache_data.clear()
                     st.experimental_rerun()
             except Exception as e:
                 st.error(f"❌ Error: {e}, Could not update database! Try again, or contact the developer.")
