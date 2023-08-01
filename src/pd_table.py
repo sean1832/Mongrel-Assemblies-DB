@@ -36,7 +36,7 @@ def table(container):
         with st.spinner("fetching from database..."):
             # fetch data from database
             order_by = ['student_number', 'spec_id', 'name', 'material', 'amount', 'unit', 'notes', 'uid', 'images',
-                        '3d_model']
+                        '3d_model', 'time']
             df = db_handler.get_data(order_by)
 
         col1, col2, col3 = st.columns([0.1, 0.1, 1])
