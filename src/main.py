@@ -268,5 +268,5 @@ except KeyboardInterrupt:
 finally:
     if app:
         db_handler.close_app_if_exists(APP_NAME)
-        utils.clear_temp()
-        print('Database closed.')
+        # utils.clear_temp()
+        # print('Database closed.')
