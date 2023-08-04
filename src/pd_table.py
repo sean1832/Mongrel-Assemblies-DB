@@ -57,7 +57,7 @@ def table(container):
                 column_config[col] = st.column_config.ImageColumn()
             elif '3d_model' in col:  # if column is a 3d_model column
                 column_config[col] = st.column_config.LinkColumn(
-                    "Download 3D Model", help="This is a link to the 3D model", disabled=True
+                    "3D Model", help="This is a link to the 3D model", disabled=True
                 )
             elif 'spec_id' in col:  # if column is a spec_id column
                 column_config[col] = st.column_config.TextColumn()
@@ -76,7 +76,7 @@ def table(container):
             df,
             column_config=column_config,
             use_container_width=True,
-            disabled=['uid', 'student_number']
+            disabled=['uid', 'student_number', 'time']
         )
 
         if st.button('⬆️ Update changes'):
