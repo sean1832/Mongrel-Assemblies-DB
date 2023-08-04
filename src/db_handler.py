@@ -11,7 +11,8 @@ def get_init_firestore_app(name='default'):
         app = firebase_admin.get_app(name)
     except ValueError:
         # If app doesn't exist, initialize it
-        cred = credential.get_firebase_creds()
+        cred_json = credential.google_creds()
+        cred = firebase_admin.credentials.Certificate(cred_json)
         app = firebase_admin.initialize_app(cred, name=name)
     return app
 

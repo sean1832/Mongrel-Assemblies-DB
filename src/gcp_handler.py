@@ -11,7 +11,7 @@ import io
 
 
 def init():
-    creds_str = credential.get_gcp_creds()
+    creds_str = credential.google_creds()
 
     if not os.path.exists('temp'):
         os.makedirs('temp')
