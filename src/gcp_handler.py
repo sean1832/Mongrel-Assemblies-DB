@@ -2,7 +2,7 @@ from google.cloud import storage
 import streamlit as st
 import os
 import json
-import google_handler
+import credential
 import fnmatch
 import file_io
 import utils
@@ -11,7 +11,7 @@ import io
 
 
 def init():
-    creds_str = google_handler.get_gcp_creds()
+    creds_str = credential.get_gcp_creds()
 
     if not os.path.exists('temp'):
         os.makedirs('temp')

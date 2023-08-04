@@ -1,6 +1,6 @@
 import firebase_admin
 from firebase_admin import firestore
-import google_handler
+import credential
 import pandas as pd
 import streamlit as st
 
@@ -11,7 +11,7 @@ def get_init_firestore_app(name='default'):
         app = firebase_admin.get_app(name)
     except ValueError:
         # If app doesn't exist, initialize it
-        cred = google_handler.get_firebase_creds()
+        cred = credential.get_firebase_creds()
         app = firebase_admin.initialize_app(cred, name=name)
     return app
 
