@@ -1,8 +1,9 @@
+from backend import credential
+import urllib.parse
 from google.cloud import storage
 import streamlit as st
 import os
 import json
-import google_handler
 import fnmatch
 import file_io
 import utils
@@ -11,7 +12,7 @@ import io
 
 
 def init():
-    creds_str = google_handler.get_gcp_creds()
+    creds_str = credential.google_creds()
 
     if not os.path.exists('temp'):
         os.makedirs('temp')
@@ -92,6 +93,20 @@ def upload_to_bucket(root_dir, file, uid, name, metadata=None, compress=None):
         tb = traceback.format_exc()
         st.error(f'❌Failed to upload to the bucket: **{e}** \n\n **Traceback**:\n ```{tb}```')
         st.stop()
+
+
+def delete_from_bucket(root_dir, filenames, uid):
+    for filename in filenames:
+        # Decode the filename to ensure spaces are handled correctly
+        decoded_filename = urllib.parse.unquote(filename)
+        try:
+            storage_client = st.session_state['storage_client']
+            bucket = storage_client.get_bucket(st.secrets['gcp']['bucket_name'])
+            blob = bucket.blob(f"{root_dir}/{uid}/{decoded_filename}")
+            blob.delete()
+        except Exception as e:
+            st.error(f'failed to delete file ({root_dir}/{uid}/{decoded_filename}) from bucket. **{e}**')
+            st.stop()
 
 
 def download_from_bucket(root_dir, filename, uid):

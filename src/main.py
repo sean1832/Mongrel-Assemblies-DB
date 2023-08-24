@@ -1,9 +1,8 @@
 import streamlit as st
 import sidebar
 import io
-import db_handler
+from backend import db_handler, gcp_handler
 import utils
-import gcp_handler
 import file_io
 from PIL import Image
 import traceback
@@ -18,20 +17,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-if 'is_authenticated' not in st.session_state:
-    st.session_state['is_authenticated'] = False
-if 'student_number' not in st.session_state:
-    st.session_state['student_number'] = None
-if 'storage_client' not in st.session_state:
-    st.session_state['storage_client'] = None
-if 'app_name' not in st.session_state:
-    st.session_state['app_name'] = 'mon-asm'
-if 'db_root' not in st.session_state:
-    st.session_state['db_root'] = 'Inventory'
-if 'msg' not in st.session_state:
-    st.session_state['msg'] = ''
-if 'lock_uid' not in st.session_state:
-    st.session_state['lock_uid'] = False
+utils.initialize_session_state()
 
 APP_NAME = st.session_state['app_name']
 ROOT = st.session_state['db_root']
@@ -47,7 +33,7 @@ db_handler.close_app_if_exists(APP_NAME)
 gcp_handler.init()
 
 
-def submit_form(uid, spec_id, name, material, amount, unit, notes, uploaded_images, uploaded_model):
+def submit_form(uid, spec_id, name, material, amount, unit, notes, model_scale, uploaded_images, uploaded_model):
     st.session_state['msg'] = ''
     filename = f'{spec_id}-{name}-{st.session_state["student_number"]}'
     with st.spinner(text='Uploading data...'):
@@ -106,14 +92,16 @@ def submit_form(uid, spec_id, name, material, amount, unit, notes, uploaded_imag
                     '3d_model': gcp_handler.get_blob_info(ROOT, uid, f'{filename}*', ['.obj', '.3dm', '.gz', '.xz'],
                                                           infos=['url']),
                     'original_md5': gcp_handler.get_blob_info(ROOT, uid, f'{filename}*',
-                                                                       ['.obj', '.3dm', '.gz', '.xz'],
-                                                                       infos=['original_md5']),
+                                                              ['.obj', '.3dm', '.gz', '.xz'],
+                                                              infos=['original_md5']),
                     'md5_hash': gcp_handler.get_blob_info(ROOT, uid, f'{filename}*',
-                                                                         ['.obj', '.3dm', '.gz', '.xz'],
-                                                                         infos=['md5_hash']),
-                    'time': utils.get_current_time()
+                                                          ['.obj', '.3dm', '.gz', '.xz'],
+                                                          infos=['md5_hash']),
+                    'time': utils.get_current_time(),
+                    'model_scale': model_scale
                 }
                 db_handler.set_data(data, uid)
+
                 # clear cache
                 st.cache_data.clear()
 
@@ -216,16 +204,18 @@ def info_form(uid, df):
             notes = st.text_area('Notes/ Description', height=130, help='Notes or description for extra info', value=notes_default)
 
         # image and 3D model uploader
-        col1, col2 = st.columns(2)
+        col1, col2, col3 = st.columns([1, 0.8, 0.2])
         with col1:
             uploaded_images = st.file_uploader("🖼️ Reference photographs or images (max 10)",
                                                type=["jpg", "jpeg", "png"],
                                                accept_multiple_files=True)
         with col2:
             uploaded_model = st.file_uploader('*📐 3D Model (.3dm)', type=['3dm'], accept_multiple_files=False)
+        with col3:
+            model_scale = st.selectbox('*Model Scale', ['mm', 'cm', 'm'], index=0)
 
         if st.form_submit_button(label='🚀 Submit'):
-            submit_form(uid, spec_id, name, material, amount, unit, notes, uploaded_images, uploaded_model)
+            submit_form(uid, spec_id, name, material, amount, unit, notes, model_scale, uploaded_images, uploaded_model)
 
 
 def data_form():
@@ -268,5 +258,5 @@ except KeyboardInterrupt:
 finally:
     if app:
         db_handler.close_app_if_exists(APP_NAME)
-        utils.clear_temp()
-        print('Database closed.')
+        # utils.clear_temp()
+        # print('Database closed.')

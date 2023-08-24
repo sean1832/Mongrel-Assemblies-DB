@@ -1,9 +1,11 @@
 import streamlit as st
-import db_handler
+from backend import db_handler
 import file_io
+import utils
 
 
 def compare_dataframes(df_original, df_modified):
+    """Compares two DataFrames and returns a list of modified data."""
     modified_data = []
 
     # Iterate through each row in the original DataFrame
@@ -17,7 +19,8 @@ def compare_dataframes(df_original, df_modified):
             student_number = row['student_number']
 
             # Get the modified fields
-            modified_fields = {field: modified_row[field] for field in df_original.columns if row[field] != modified_row[field]}
+            modified_fields = {field: modified_row[field] for field in df_original.columns if
+                               row[field] != modified_row[field]}
 
             # Append the result
             modified_data.append({
@@ -27,7 +30,58 @@ def compare_dataframes(df_original, df_modified):
             })
 
     return modified_data
+
+
+def filter_data(df, filter_dict):
+    """Filters the data in the DataFrame."""
+    # Get the filter keys
+    filter_keys = filter_dict.keys()
+
+    # Loop through the filter keys
+    for key in filter_keys:
+        # Get the filter value
+        filter_value = filter_dict[key]
+
+        # If the filter value is not empty
+        if filter_value != '':
+            # Filter the DataFrame
+            df = df[df[key].str.contains(filter_value, case=False)]
+
+    return df
+
+
+def handel_update(filtered_df, modified_df):
+    try:
+        modified_data = compare_dataframes(filtered_df, modified_df)
+        if len(modified_data) == 0:
+            st.warning("⚠️ No changes detected!")
+            return
+        else:
+            delete_count = 0
+            update_count = 0
+
+            # check if modified_fields contains delete
+            for data in modified_data:
+                if 'delete' in data['modified_fields']:
+                    if data['modified_fields']['delete'] == True:
+                        db_handler.delete_data(data['uid'], data['student_number'])
+                        delete_count += 1
+                else:
+                    # add current time to modified_fields
+                    data['modified_fields']['time'] = utils.get_current_time()
+                    db_handler.update_data(data['modified_fields'], data['uid'], data['student_number'])
+                    update_count += 1
+
+            st.success(
+                f"✅ Successfully updated ({update_count}) and deleted ({delete_count}) items to database!)")
+            st.cache_data.clear()
+            st.experimental_rerun()
+    except Exception as e:
+        st.error(f"❌ Error: {e}, Could not update database! Try again, or contact the developer.")
+
+
 def table(container):
+    """Creates the database table."""
     with container:
         if st.button("🔃 Refresh database"):
             st.cache_data.clear()
@@ -35,18 +89,22 @@ def table(container):
 
         with st.spinner("fetching from database..."):
             # fetch data from database
-            order_by = ['student_number', 'spec_id', 'name', 'material', 'amount', 'unit', 'notes', 'uid', 'images',
-                        '3d_model']
-            df = db_handler.get_data(order_by)
+            order_by = ['delete', 'student_number', 'spec_id', 'name', 'material', 'amount', 'unit', 'notes', 'uid',
+                        'images', '3d_model', 'time', 'model_scale']
+            original_df = db_handler.get_data(order_by)
+            original_df['delete'] = False
 
-        col1, col2, col3 = st.columns([0.1, 0.1, 1])
+        col1, col2 = st.columns(2)
         with col1:
-            file_io.export_to_csv(df, 'database')
+            filter_key = st.selectbox("Filter by", options=original_df.columns, key='filter_by')
         with col2:
-            file_io.export_to_excel(df, "database")
+            filter_val = st.text_input("Filter value", key='filter_value')
+
+        # Filter the data for editing
+        filtered_df = filter_data(original_df.copy(), {filter_key: filter_val})
 
         # Get list of column names
-        df_cols = df.columns.tolist()
+        df_cols = original_df.columns.tolist()
 
         # Initialize column_config dictionary
         column_config = {}
@@ -57,7 +115,7 @@ def table(container):
                 column_config[col] = st.column_config.ImageColumn()
             elif '3d_model' in col:  # if column is a 3d_model column
                 column_config[col] = st.column_config.LinkColumn(
-                    "Download 3D Model", help="This is a link to the 3D model", disabled=True
+                    "3D Model", help="This is a link to the 3D model", disabled=True
                 )
             elif 'spec_id' in col:  # if column is a spec_id column
                 column_config[col] = st.column_config.TextColumn()
@@ -71,27 +129,29 @@ def table(container):
                 column_config[col] = st.column_config.TextColumn()
             elif 'notes' in col:  # if column is a notes column
                 column_config[col] = st.column_config.TextColumn()
+            elif 'model_scale' in col:  # if column is a model_scale column
+                column_config[col] = st.column_config.SelectboxColumn(
+                    options=["mm", "cm", "m"],
+                    default="mm"
+                )
+            elif 'delete' in col:
+                column_config[col] = st.column_config.CheckboxColumn()
 
         modified_df = st.data_editor(
-            df,
+            filtered_df,
             column_config=column_config,
             use_container_width=True,
-            disabled=['uid', 'student_number']
+            disabled=['uid', 'student_number', 'time'],
         )
 
-        if st.button('⬆️ Update changes'):
-            try:
-                modified_data = compare_dataframes(df, modified_df)
-                if len(modified_data) == 0:
-                    st.warning("⚠️ No changes detected!")
-                    return
-                else:
-                    for data in modified_data:
-                        db_handler.update_data(data['modified_fields'], data['uid'], data['student_number'])
-                    st.success("✅ Successfully updated database!")
-                    st.cache_data.clear()
-                    st.experimental_rerun()
-            except Exception as e:
-                st.error(f"❌ Error: {e}, Could not update database! Try again, or contact the developer.")
-        return df
-
+        col1, col2 = st.columns([0.2, 1])
+        with col1:
+            if st.button('⬆️ Update changes'):
+                handel_update(filtered_df, modified_df)
+        with col2:
+            col3, col4 = st.columns([0.2, 1])
+            with col3:
+                file_io.export_to_csv(original_df, 'database')
+            with col4:
+                file_io.export_to_excel(original_df, "database")
+        return original_df
