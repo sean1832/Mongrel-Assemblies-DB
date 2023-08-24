@@ -95,6 +95,18 @@ def upload_to_bucket(root_dir, file, uid, name, metadata=None, compress=None):
         st.stop()
 
 
+def delete_from_bucket(root_dir, filenames, uid):
+    for filename in filenames:
+        try:
+            storage_client = st.session_state['storage_client']
+            bucket = storage_client.get_bucket(st.secrets['gcp']['bucket_name'])
+            blob = bucket.blob(f"{root_dir}/{uid}/{filename}")
+            blob.delete()
+        except Exception as e:
+            st.error(f'failed to delete file (filename: {filename}, uid: {uid}) from bucket. **{e}**')
+            st.stop()
+
+
 def download_from_bucket(root_dir, filename, uid):
     try:
         storage_client = st.session_state['storage_client']
