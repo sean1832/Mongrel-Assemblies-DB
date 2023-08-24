@@ -118,16 +118,16 @@ public abstract class Script_Instance_5a983 : GH_ScriptInstance
     string cmd = "-_Import \"" + path + "\" _Enter";
     Rhino.RhinoApp.RunScript(cmd, false);
 
-    cmd = "-_SelAll \"" + "\" _Enter";
+    cmd = "-_SelAll _Enter";
     Rhino.RhinoApp.RunScript(cmd, false);
 
-    cmd = "-_Mesh \"" + "\" _Enter";
+    cmd = "-_Mesh _Enter";
     Rhino.RhinoApp.RunScript(cmd, false);
 
-    cmd = "-_SelMesh \"" + "\" _Enter";
+    cmd = "-_SelMesh _Enter";
     Rhino.RhinoApp.RunScript(cmd, false);
 
-    cmd = "-_Join \"" + "\" _Enter";
+    cmd = "-_Join _Enter";
     Rhino.RhinoApp.RunScript(cmd, false);
 
     // get the selected objects
@@ -150,11 +150,31 @@ public abstract class Script_Instance_5a983 : GH_ScriptInstance
     string cmd = "-_Import \"" + path + "\" _Enter";
     Rhino.RhinoApp.RunScript(cmd, false);
 
+    // check is selected objects are blocks
+    var selectObjs = RhinoDoc.ActiveDoc.Objects.GetSelectedObjects(false, false).ToList();
+    bool isBlock = false;
+
+    foreach (var selectObj in selectObjs)
+    {
+      if (selectObj.ObjectType == Rhino.DocObjects.ObjectType.InstanceReference)
+      {
+        // if the selected object is a block, explode it
+        isBlock = true;
+        break;
+      }
+    }
+
+    if (isBlock)
+    {
+      cmd = "-_ExplodeBlock _Enter";
+      Rhino.RhinoApp.RunScript(cmd, false);
+    }
+
     cmd = "-_Group _Enter _Enter";
     Rhino.RhinoApp.RunScript(cmd, false);
 
     // get the selected objects
-    var selectObjs = RhinoDoc.ActiveDoc.Objects.GetSelectedObjects(false, false).ToList();
+    selectObjs = RhinoDoc.ActiveDoc.Objects.GetSelectedObjects(false, false).ToList();
     List<GeometryBase> geos = new List<GeometryBase>();
     foreach (var selectObj in selectObjs)
     {
