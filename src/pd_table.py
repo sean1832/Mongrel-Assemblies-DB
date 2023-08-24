@@ -44,8 +44,20 @@ def filter_data(df, filter_dict):
 
         # If the filter value is not empty
         if filter_value != '':
-            # Filter the DataFrame
-            df = df[df[key].str.contains(filter_value, case=False)]
+            # Check the data type of the column
+            if df[key].dtype == 'object':  # String columns
+                # Replace NaN with a placeholder and then filter
+                df = df[df[key].fillna('PLACEHOLDER').str.contains(filter_value, case=False)]
+            elif df[key].dtype in ['int64', 'float64']:  # Numeric columns
+                try:
+                    numeric_value = float(filter_value)
+                    df = df[(df[key] == numeric_value) | df[key].isna()]
+                except ValueError:
+                    # If the filter value can't be converted to a number, skip filtering for this column
+                    pass
+            elif df[key].dtype == 'bool':  # Boolean columns
+                bool_value = filter_value.lower() in ['true', 'yes', '1']
+                df = df[(df[key] == bool_value) | df[key].isna()]
 
     return df
 
