@@ -46,7 +46,7 @@ db_handler.close_app_if_exists(APP_NAME)
 gcp_handler.init()
 
 
-def submit_form(uid, spec_id, name, material, amount, unit, notes, uploaded_images, uploaded_model):
+def submit_form(uid, spec_id, name, material, amount, unit, notes, model_scale, uploaded_images, uploaded_model):
     st.session_state['msg'] = ''
     filename = f'{spec_id}-{name}-{st.session_state["student_number"]}'
     with st.spinner(text='Uploading data...'):
@@ -110,7 +110,8 @@ def submit_form(uid, spec_id, name, material, amount, unit, notes, uploaded_imag
                     'md5_hash': gcp_handler.get_blob_info(ROOT, uid, f'{filename}*',
                                                           ['.obj', '.3dm', '.gz', '.xz'],
                                                           infos=['md5_hash']),
-                    'time': utils.get_current_time()
+                    'time': utils.get_current_time(),
+                    'model_scale': model_scale
                 }
                 db_handler.set_data(data, uid)
 
@@ -216,16 +217,18 @@ def info_form(uid, df):
             notes = st.text_area('Notes/ Description', height=130, help='Notes or description for extra info', value=notes_default)
 
         # image and 3D model uploader
-        col1, col2 = st.columns(2)
+        col1, col2, col3 = st.columns([1, 0.8, 0.2])
         with col1:
             uploaded_images = st.file_uploader("🖼️ Reference photographs or images (max 10)",
                                                type=["jpg", "jpeg", "png"],
                                                accept_multiple_files=True)
         with col2:
             uploaded_model = st.file_uploader('*📐 3D Model (.3dm)', type=['3dm'], accept_multiple_files=False)
+        with col3:
+            model_scale = st.selectbox('*Model Scale', ['mm', 'cm', 'm'], index=0)
 
         if st.form_submit_button(label='🚀 Submit'):
-            submit_form(uid, spec_id, name, material, amount, unit, notes, uploaded_images, uploaded_model)
+            submit_form(uid, spec_id, name, material, amount, unit, notes, model_scale, uploaded_images, uploaded_model)
 
 
 def data_form():
