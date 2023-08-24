@@ -88,11 +88,13 @@ def get_data(columns_order=['student_number', 'material', 'amount', 'notes', 'ui
 
     data = []
     for user_doc in users_docs:
+        print("Processing user doc...")
         user_id = user_doc.id
         items_ref = users_ref.document(user_id).collection('Items')
         items_docs = items_ref.stream()
 
         for item_doc in items_docs:
+            print("Processing item doc...")
             item_data = item_doc.to_dict()
             item_id = item_doc.id
             item_data['uid'] = item_id

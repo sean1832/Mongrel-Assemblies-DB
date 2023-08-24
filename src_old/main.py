@@ -17,7 +17,20 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-utils.initialize_session_state()
+if 'is_authenticated' not in st.session_state:
+    st.session_state['is_authenticated'] = False
+if 'student_number' not in st.session_state:
+    st.session_state['student_number'] = None
+if 'storage_client' not in st.session_state:
+    st.session_state['storage_client'] = None
+if 'app_name' not in st.session_state:
+    st.session_state['app_name'] = 'mon-asm'
+if 'db_root' not in st.session_state:
+    st.session_state['db_root'] = 'Inventory'
+if 'msg' not in st.session_state:
+    st.session_state['msg'] = ''
+if 'lock_uid' not in st.session_state:
+    st.session_state['lock_uid'] = False
 
 APP_NAME = st.session_state['app_name']
 ROOT = st.session_state['db_root']

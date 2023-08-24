@@ -4,7 +4,6 @@ import file_io
 
 
 def compare_dataframes(df_original, df_modified):
-    """Compares two DataFrames and returns a list of modified data."""
     modified_data = []
 
     # Iterate through each row in the original DataFrame
@@ -18,8 +17,7 @@ def compare_dataframes(df_original, df_modified):
             student_number = row['student_number']
 
             # Get the modified fields
-            modified_fields = {field: modified_row[field] for field in df_original.columns if
-                               row[field] != modified_row[field]}
+            modified_fields = {field: modified_row[field] for field in df_original.columns if row[field] != modified_row[field]}
 
             # Append the result
             modified_data.append({
@@ -29,27 +27,7 @@ def compare_dataframes(df_original, df_modified):
             })
 
     return modified_data
-
-
-def filter_data(df, filter_dict):
-    """Filters the data in the DataFrame."""
-    # Get the filter keys
-    filter_keys = filter_dict.keys()
-
-    # Loop through the filter keys
-    for key in filter_keys:
-        # Get the filter value
-        filter_value = filter_dict[key]
-
-        # If the filter value is not empty
-        if filter_value != '':
-            # Filter the DataFrame
-            df = df[df[key].str.contains(filter_value, case=False)]
-
-    return df
-
 def table(container):
-    """Creates the database table."""
     with container:
         if st.button("🔃 Refresh database"):
             st.cache_data.clear()
@@ -61,7 +39,11 @@ def table(container):
                         '3d_model', 'time']
             df = db_handler.get_data(order_by)
 
-
+        col1, col2, col3 = st.columns([0.1, 0.1, 1])
+        with col1:
+            file_io.export_to_csv(df, 'database')
+        with col2:
+            file_io.export_to_excel(df, "database")
 
         # Get list of column names
         df_cols = df.columns.tolist()
@@ -89,11 +71,6 @@ def table(container):
                 column_config[col] = st.column_config.TextColumn()
             elif 'notes' in col:  # if column is a notes column
                 column_config[col] = st.column_config.TextColumn()
-            elif 'model_scale' in col:  # if column is a model_scale column
-                column_config[col] = st.column_config.SelectboxColumn(
-                    width="medium",
-                    options=["mm", "cm", "m"]
-                )
 
         modified_df = st.data_editor(
             df,
@@ -102,26 +79,19 @@ def table(container):
             disabled=['uid', 'student_number', 'time']
         )
 
-        col1, col2 = st.columns([0.2, 1])
-        with col1:
-            if st.button('⬆️ Update changes'):
-                try:
-                    modified_data = compare_dataframes(df, modified_df)
-                    if len(modified_data) == 0:
-                        st.warning("⚠️ No changes detected!")
-                        return
-                    else:
-                        for data in modified_data:
-                            db_handler.update_data(data['modified_fields'], data['uid'], data['student_number'])
-                        st.success("✅ Successfully updated database!")
-                        st.cache_data.clear()
-                        st.experimental_rerun()
-                except Exception as e:
-                    st.error(f"❌ Error: {e}, Could not update database! Try again, or contact the developer.")
-        with col2:
-            col3, col4 = st.columns([0.2,1])
-            with col3:
-                file_io.export_to_csv(df, 'database')
-            with col4:
-                file_io.export_to_excel(df, "database")
+        if st.button('⬆️ Update changes'):
+            try:
+                modified_data = compare_dataframes(df, modified_df)
+                if len(modified_data) == 0:
+                    st.warning("⚠️ No changes detected!")
+                    return
+                else:
+                    for data in modified_data:
+                        db_handler.update_data(data['modified_fields'], data['uid'], data['student_number'])
+                    st.success("✅ Successfully updated database!")
+                    st.cache_data.clear()
+                    st.experimental_rerun()
+            except Exception as e:
+                st.error(f"❌ Error: {e}, Could not update database! Try again, or contact the developer.")
         return df
+
