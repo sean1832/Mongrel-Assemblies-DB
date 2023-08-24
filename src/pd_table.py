@@ -1,6 +1,7 @@
 import streamlit as st
 from backend import db_handler
 import file_io
+import utils
 
 
 def compare_dataframes(df_original, df_modified):
@@ -66,6 +67,8 @@ def handel_update(filtered_df, modified_df):
                         db_handler.delete_data(data['uid'], data['student_number'])
                         delete_count += 1
                 else:
+                    # add current time to modified_fields
+                    data['modified_fields']['time'] = utils.get_current_time()
                     db_handler.update_data(data['modified_fields'], data['uid'], data['student_number'])
                     update_count += 1
 
@@ -75,6 +78,7 @@ def handel_update(filtered_df, modified_df):
             st.experimental_rerun()
     except Exception as e:
         st.error(f"❌ Error: {e}, Could not update database! Try again, or contact the developer.")
+
 
 def table(container):
     """Creates the database table."""
