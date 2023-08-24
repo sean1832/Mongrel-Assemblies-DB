@@ -1,8 +1,9 @@
+from backend import credential
+
 from google.cloud import storage
 import streamlit as st
 import os
 import json
-import credential
 import fnmatch
 import file_io
 import utils

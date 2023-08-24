@@ -1,9 +1,8 @@
 import streamlit as st
 import sidebar
 import io
-import db_handler
+from backend import db_handler, gcp_handler
 import utils
-import gcp_handler
 import file_io
 from PIL import Image
 import traceback
@@ -106,14 +105,15 @@ def submit_form(uid, spec_id, name, material, amount, unit, notes, uploaded_imag
                     '3d_model': gcp_handler.get_blob_info(ROOT, uid, f'{filename}*', ['.obj', '.3dm', '.gz', '.xz'],
                                                           infos=['url']),
                     'original_md5': gcp_handler.get_blob_info(ROOT, uid, f'{filename}*',
-                                                                       ['.obj', '.3dm', '.gz', '.xz'],
-                                                                       infos=['original_md5']),
+                                                              ['.obj', '.3dm', '.gz', '.xz'],
+                                                              infos=['original_md5']),
                     'md5_hash': gcp_handler.get_blob_info(ROOT, uid, f'{filename}*',
-                                                                         ['.obj', '.3dm', '.gz', '.xz'],
-                                                                         infos=['md5_hash']),
+                                                          ['.obj', '.3dm', '.gz', '.xz'],
+                                                          infos=['md5_hash']),
                     'time': utils.get_current_time()
                 }
                 db_handler.set_data(data, uid)
+
                 # clear cache
                 st.cache_data.clear()
 

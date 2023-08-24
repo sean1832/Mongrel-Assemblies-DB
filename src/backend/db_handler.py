@@ -1,6 +1,6 @@
 import firebase_admin
 from firebase_admin import firestore
-import credential
+from backend import credential
 import pandas as pd
 import streamlit as st
 

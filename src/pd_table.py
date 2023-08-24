@@ -1,5 +1,5 @@
 import streamlit as st
-import db_handler
+from backend import db_handler
 import file_io
 
 

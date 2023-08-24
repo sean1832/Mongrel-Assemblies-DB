@@ -1,7 +1,6 @@
 import os
 import streamlit as st
 import json
-import db_handler
 import io
 import gzip
 import lzma
