@@ -1,6 +1,6 @@
 import firebase_admin
 from firebase_admin import firestore
-from backend import credential
+from backend import credential, gcp_handler
 import pandas as pd
 import streamlit as st
 
@@ -59,6 +59,30 @@ def update_data(data: dict, uid: str, student_number: str):
     item_ref.update(data)
 
 
+def delete_data(uid: str, student_number: str):
+    """Deletes the data in the database. This function should be called when the user modified the database table."""
+    user_ref = get_user_ref(student_number)
+
+
+    item_ref = user_ref.collection('Items').document(uid)
+
+    # get 3d model and images path
+    item_data = item_ref.get().to_dict()
+    models_path = item_data['3d_model']
+    images_path = item_data['images']
+
+    # get filenames
+    models_filename = [model_path.split('/')[-1] for model_path in models_path]
+    images_filename = [image_path.split('/')[-1] for image_path in images_path]
+
+    # delete from bucket
+    gcp_handler.delete_from_bucket(st.session_state['db_root'], models_filename, uid)
+    gcp_handler.delete_from_bucket(st.session_state['db_root'], images_filename, uid)
+
+    # delete data
+    item_ref.delete()
+
+
 def explode_list(df, col_name):
     """Explodes the list in the DataFrame"""
     # find the maximum length of list in the DataFrame
@@ -79,7 +103,7 @@ def explode_list(df, col_name):
 
 
 @st.cache_data
-def get_data(columns_order=['student_number', 'material', 'amount', 'notes', 'uid', 'images', 'created_at']):
+def get_data(columns_order):
     """Gets the data from the database. This function should be called when user wants to retrieve data to dataframe."""
     db = st.session_state['db']
     users_ref = db.collection('Users')
@@ -101,7 +125,13 @@ def get_data(columns_order=['student_number', 'material', 'amount', 'notes', 'ui
             data.append(item_data)
     df = pd.DataFrame(data)
     # reorder columns
-    df = df[columns_order]
+    exist_columns = []
+    # check if column exists
+    exist_columns = []
+    for column in columns_order:
+        if column in df.columns:
+            exist_columns.append(column)
+    df = df[exist_columns]
 
     # call function for each column that needs exploding
     print("Exploding columns...")
