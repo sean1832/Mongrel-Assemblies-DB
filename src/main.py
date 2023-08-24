@@ -207,7 +207,7 @@ def info_form(uid, df):
         col1, col2, col3 = st.columns([1, 0.8, 0.2])
         with col1:
             uploaded_images = st.file_uploader("🖼️ Reference photographs or images (max 10)",
-                                               type=["jpg", "jpeg", "png"],
+                                               type=["jpg", "jpeg", "png", "webp"],
                                                accept_multiple_files=True)
         with col2:
             uploaded_model = st.file_uploader('*📐 3D Model (.3dm)', type=['3dm'], accept_multiple_files=False)
