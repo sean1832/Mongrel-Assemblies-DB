@@ -1,5 +1,5 @@
 from backend import credential
-
+import urllib.parse
 from google.cloud import storage
 import streamlit as st
 import os
@@ -97,13 +97,15 @@ def upload_to_bucket(root_dir, file, uid, name, metadata=None, compress=None):
 
 def delete_from_bucket(root_dir, filenames, uid):
     for filename in filenames:
+        # Decode the filename to ensure spaces are handled correctly
+        decoded_filename = urllib.parse.unquote(filename)
         try:
             storage_client = st.session_state['storage_client']
             bucket = storage_client.get_bucket(st.secrets['gcp']['bucket_name'])
-            blob = bucket.blob(f"{root_dir}/{uid}/{filename}")
+            blob = bucket.blob(f"{root_dir}/{uid}/{decoded_filename}")
             blob.delete()
         except Exception as e:
-            st.error(f'failed to delete file (filename: {filename}, uid: {uid}) from bucket. **{e}**')
+            st.error(f'failed to delete file ({root_dir}/{uid}/{decoded_filename}) from bucket. **{e}**')
             st.stop()
 
 
