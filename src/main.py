@@ -225,7 +225,7 @@ def more_info_form():
         st.markdown("### 🏗️ Source")
         col1, col2 = st.columns(2)
         with col1:
-            source_name = st.text_input('Source (e.g. `QVM` or `Beach Forest Quarry`)',
+            source_name = st.text_input('Source (e.g. `Queen Victorian Market` or `Beach Forest Quarry`)',
                                         help='Where is this item salvaged from?')
             source_latitude = st.number_input('Latitude',
                                               format='%.5f',
@@ -279,7 +279,7 @@ def more_info_form():
         with col3:
             origin_city = st.selectbox('Origin City', cities_list, index=utils.index_of_list(cities_list, 'Unknown'))
 
-        origin_notes = st.text_area('Origin Notes', height=130, help='Notes or description for extra info')
+        origin_notes = st.text_area('Origin Notes (e.g. `shed-a` or `toilet`)', height=130, help='Notes or description for extra info')
 
     source_data = {
         'name': source_name,
