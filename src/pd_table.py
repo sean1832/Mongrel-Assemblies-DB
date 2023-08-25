@@ -102,7 +102,7 @@ def table(container):
         with st.spinner("fetching from database..."):
             # fetch data from database
             order_by = ['delete', 'student_number', 'spec_id', 'name', 'uid', 'material', 'amount', 'unit', 'notes',
-                        'source', 'source_notes', 'source_year', 'source_latitude', 'source_longitude', 'origin_country', 'source_state', 'source_city',
+                        'source_name', 'source_notes', 'source_year', 'source_latitude', 'source_longitude', 'source_country', 'source_state', 'source_city',
                         'origin_name', 'origin_notes', 'origin_year', 'origin_latitude', 'origin_longitude', 'origin_country', 'origin_state', 'origin_city',
                         'images', '3d_model', 'time', 'model_scale']
             original_df = db_handler.get_data(order_by)
