@@ -9,6 +9,8 @@ import traceback
 import streamlit_toggle as toggle
 import pd_table
 import map
+from streamlit_extras.no_default_selectbox import selectbox
+
 
 # set up page
 st.set_page_config(
@@ -214,11 +216,8 @@ def more_info_form():
     filtered_cities_df = cities_df[cities_df['country_name'].isin(target_countries)]
 
     countries_list = target_countries
-    countries_list.append('Unknown')
     states_list = list(set(filtered_states_df['name'].tolist()))
-    states_list.append('Unknown')
     cities_list = list(set(filtered_cities_df['name'].tolist()))
-    cities_list.append('Unknown')
 
     col_a, col_b = st.columns(2)
     with col_a:
@@ -272,12 +271,11 @@ def more_info_form():
 
         col1, col2, col3 = st.columns([1, 1, 1])
         with col1:
-            origin_country = st.selectbox('Origin Country', countries_list,
-                                          index=utils.index_of_list(countries_list, 'Unknown'))
+            origin_country = selectbox('Origin Country', countries_list, no_selection_label="<Unknown>")
         with col2:
-            origin_state = st.selectbox('Origin State', states_list, index=utils.index_of_list(states_list, 'Unknown'))
+            origin_state = selectbox('Origin State', states_list, no_selection_label="<Unknown>")
         with col3:
-            origin_city = st.selectbox('Origin City', cities_list, index=utils.index_of_list(cities_list, 'Unknown'))
+            origin_city = selectbox('Origin City', cities_list, no_selection_label="<Unknown>")
 
         origin_notes = st.text_area('Origin Notes (e.g. `shed-a` or `toilet`)', height=130, help='Notes or description for extra info')
 
