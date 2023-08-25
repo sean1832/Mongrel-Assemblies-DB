@@ -277,7 +277,7 @@ def more_info_form():
         with col3:
             origin_city = selectbox('Origin City', cities_list, no_selection_label="<Unknown>")
 
-        origin_notes = st.text_area('Origin Notes (e.g. `shed-a` or `toilet`)', height=130, help='Notes or description for extra info')
+        origin_notes = st.text_area('Origin Notes', height=130, help='Notes or description for extra info')
 
     source_data = {
         'name': source_name,
