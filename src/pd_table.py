@@ -2,6 +2,8 @@ import streamlit as st
 from backend import db_handler
 import file_io
 import utils
+from streamlit_sortables import sort_items
+from streamlit_extras import stateful_button
 
 
 def compare_dataframes(df_original, df_modified):
@@ -72,22 +74,27 @@ def handel_update(filtered_df, modified_df):
             delete_count = 0
             update_count = 0
 
-            # check if modified_fields contains delete
-            for data in modified_data:
-                if 'delete' in data['modified_fields']:
-                    if data['modified_fields']['delete'] == True:
-                        db_handler.delete_data(data['uid'], data['student_number'])
-                        delete_count += 1
-                else:
-                    # add current time to modified_fields
-                    data['modified_fields']['time'] = utils.get_current_time()
-                    db_handler.update_data(data['modified_fields'], data['uid'], data['student_number'])
-                    update_count += 1
+            st.write(modified_data)
+            if st.button("💾 Commit changes"):
+                # set confirm to True
+                st.session_state['commit'] = True
 
-            st.success(
-                f"✅ Successfully updated ({update_count}) and deleted ({delete_count}) items to database!)")
-            st.cache_data.clear()
-            st.experimental_rerun()
+                # check if modified_fields contains delete
+                for data in modified_data:
+                    if 'delete' in data['modified_fields']:
+                        if data['modified_fields']['delete'] == True:
+                            db_handler.delete_data(data['uid'], data['student_number'])
+                            delete_count += 1
+                    else:
+                        # add current time to modified_fields
+                        data['modified_fields']['time'] = utils.get_current_time()
+                        db_handler.update_data(data['modified_fields'], data['uid'], data['student_number'])
+                        update_count += 1
+                st.success(
+                    f"✅ Successfully updated ({update_count}) and deleted ({delete_count}) items to database!)")
+                st.cache_data.clear()
+                st.experimental_rerun()
+
     except Exception as e:
         st.error(f"❌ Error: {e}, Could not update database! Try again, or contact the developer.")
 
@@ -106,22 +113,37 @@ def table(container):
                         'source_country', 'source_state', 'source_city',
                         'origin_name', 'origin_notes', 'origin_year', 'origin_latitude', 'origin_longitude',
                         'origin_country', 'origin_state', 'origin_city',
-                        'images', '3d_model', 'time', 'model_scale']
+                        'images', '3d_model', 'time', 'model_scale', 'owner', 'md5_hash']
             original_df = db_handler.get_data(order_by)
             original_df['delete'] = False
+
+        filter_items = [
+            {
+                'header': 'Sort by',
+                'items': original_df.columns.tolist()
+            },
+            {
+                'header': 'Columns to remove',
+                'items': []
+            }
+        ]
+
+        # Create a filter bar
+        filter_keys = sort_items(filter_items, multi_containers=True)
+        filtered_df = original_df.copy()[filter_keys[0]['items']]
 
         # Create a container for the search bar
         col1, col2 = st.columns(2)
         with col1:
-            search_key = st.selectbox("Search by", options=original_df.columns, key='search_by')
+            search_key = st.selectbox("Search by", options=filtered_df.columns, key='search_by')
         with col2:
             search_val = st.text_input("Search value", key='Search_value')
 
         # Filter the data for editing
-        result_df = search_data(original_df.copy(), {search_key: search_val})
+        result_df = search_data(filtered_df.copy(), {search_key: search_val})
 
         # Get list of column names
-        df_cols = original_df.columns.tolist()
+        df_cols = filtered_df.columns.tolist()
 
         # Initialize column_config dictionary
         column_config = {}
@@ -198,7 +220,17 @@ def table(container):
 
         col1, col2 = st.columns([0.2, 1])
         with col1:
-            if st.button('⬆️ Update changes'):
+            if 'commit' not in st.session_state:
+                st.session_state['commit'] = False
+            if 'review' not in st.session_state:
+                st.session_state['review'] = False
+
+            if st.session_state['commit']:
+                st.session_state['commit'] = False
+                st.session_state['review'] = False
+
+            if stateful_button.button('🔍 Review Changes', key='review'):
+                st.session_state['review'] = True
                 handel_update(result_df, modified_df)
         with col2:
             col3, col4 = st.columns([0.2, 1])
