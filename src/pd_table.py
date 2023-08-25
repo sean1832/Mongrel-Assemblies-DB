@@ -257,11 +257,14 @@ def table(container):
 
             if stateful_button.button('🔍 Review Changes', key='review'):
                 st.session_state['review'] = True
-                handel_update(result_df, modified_df)
+        if st.session_state['review']:
+            handel_update(result_df, modified_df)
+
         with col2:
             col3, col4 = st.columns([0.2, 1])
             with col3:
                 file_io.export_to_csv(original_df, 'database')
             with col4:
                 file_io.export_to_excel(original_df, "database")
+
         return original_df
