@@ -179,7 +179,7 @@ def table(container):
             elif 'source_notes' in col:  # if column is a shed_id column
                 column_config[col] = st.column_config.TextColumn()
             elif 'source_year' in col:  # if column is a source_year column
-                column_config[col] = st.column_config.NumberColumn()
+                column_config[col] = st.column_config.NumberColumn(format='%d')
             elif 'source_latitude' in col:  # if column is a source_lat column
                 column_config[col] = st.column_config.NumberColumn()
             elif 'source_longitude' in col:  # if column is a source_long column
@@ -196,7 +196,7 @@ def table(container):
             elif 'origin_notes' in col:  # if column is a shed_id column
                 column_config[col] = st.column_config.TextColumn()
             elif 'origin_year' in col:  # if column is a origin_year column
-                column_config[col] = st.column_config.NumberColumn()
+                column_config[col] = st.column_config.NumberColumn(format='%d')
             elif 'origin_latitude' in col:  # if column is a origin_long column
                 column_config[col] = st.column_config.NumberColumn()
             elif 'origin_longitude' in col:  # if column is a origin_lat column
