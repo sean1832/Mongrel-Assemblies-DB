@@ -11,7 +11,6 @@ import pd_table
 import map
 from streamlit_extras.no_default_selectbox import selectbox
 
-
 # set up page
 st.set_page_config(
     page_title="Mongrel Assembly Database",
@@ -53,43 +52,45 @@ def submit_form(base_info, source_info, origin_info, uploaded_images, uploaded_m
             if len(uploaded_images) > 10:
                 st.error('❌Maximum 10 images allowed.')
                 st.stop()
-            elif uploaded_model is None:
+            elif uploaded_model is None and not st.session_state['lock_assets']:
                 st.error('❌Please upload a 3D model.')
                 st.stop()
             elif amount == 0:
                 st.error('❌Count cannot be `0`.')
                 st.stop()
             else:
-                # upload images
-                img_count = 0
-                for uploaded_image in uploaded_images:
-                    # Convert to webp to reduce file size
-                    img_data = uploaded_image.read()
-                    img = Image.open(io.BytesIO(img_data))
-                    file_path = file_io.compress_image(img, quality=90, format='webp')
+                if not st.session_state['lock_assets']:
+                    # upload images
+                    img_count = 0
+                    for uploaded_image in uploaded_images:
+                        # Convert to webp to reduce file size
+                        img_data = uploaded_image.read()
+                        img = Image.open(io.BytesIO(img_data))
+                        file_path = file_io.compress_image(img, quality=90, format='webp')
 
-                    # create metadata
-                    img_meta = {
-                        'category': 'image',
-                        'original_name': uploaded_image.name,
-                        'original_size': utils.calculate_size(img_data),
-                        'original_md5': utils.calculate_md5(img_data)
+                        # create metadata
+                        img_meta = {
+                            'category': 'image',
+                            'original_name': uploaded_image.name,
+                            'original_size': utils.calculate_size(img_data),
+                            'original_md5': utils.calculate_md5(img_data)
+                        }
+
+                        with open(file_path, 'rb') as f:
+                            gcp_handler.upload_to_bucket(ROOT, f, uid, f'{filename}-{img_count:02d}', metadata=img_meta)
+                        img_count += 1
+
+                    # upload 3D model
+                    model_data = uploaded_model.read()
+                    model_meta = {
+                        'category': '3d_model',
+                        'original_name': uploaded_model.name,
+                        'original_size': utils.calculate_size(model_data),
+                        'original_md5': utils.calculate_md5(model_data)
                     }
-
-                    with open(file_path, 'rb') as f:
-                        gcp_handler.upload_to_bucket(ROOT, f, uid, f'{filename}-{img_count:02d}', metadata=img_meta)
-                    img_count += 1
-
-                # upload 3D model
-                model_data = uploaded_model.read()
-                model_meta = {
-                    'category': '3d_model',
-                    'original_name': uploaded_model.name,
-                    'original_size': utils.calculate_size(model_data),
-                    'original_md5': utils.calculate_md5(model_data)
-                }
-                uploaded_model.seek(0)  # reset pointer
-                gcp_handler.upload_to_bucket(ROOT, uploaded_model, uid, filename, compress='gzip', metadata=model_meta)
+                    uploaded_model.seek(0)  # reset pointer
+                    gcp_handler.upload_to_bucket(ROOT, uploaded_model, uid, filename, compress='gzip',
+                                                 metadata=model_meta)
 
                 # upload metadata to database
                 data = {
@@ -165,7 +166,7 @@ def uid_form():
             uid_gen,
             help="**IMPORTANT: UID must be unique within the database! "
                  "Allocate same UID will override associated existing data**")
-        col1, col2, col3 = st.columns([0.15, 0.2, 0.8])
+        col1, col2, col3, col4 = st.columns([0.2, 0.2, 0.2, 0.2])
         with col1:
             if uid == '' or st.button(label='🔃 Generate new UID'):
                 st.session_state['uid'] = utils.create_uuid()
@@ -181,6 +182,13 @@ def uid_form():
             else:
                 if 'lock_uid' not in st.session_state:
                     st.session_state['lock_uid'] = False
+        with col4:
+            if toggle.st_toggle_switch('🔒 Lock Assets', key='lock_assets', label_after=True):
+                if 'lock_assets' not in st.session_state:
+                    st.session_state['lock_assets'] = True
+            else:
+                if 'lock_assets' not in st.session_state:
+                    st.session_state['lock_assets'] = False
     return uid
 
 
@@ -201,7 +209,8 @@ def map_marker_form():
             "long": 143.571625
         }
     ]
-    tiles = ["Satellite", "Stamen Terrain", "Stamen Toner", "Stamen Watercolor", "CartoDB Positron", "CartoDB Dark_Matter"]
+    tiles = ["Satellite", "Stamen Terrain", "Stamen Toner", "Stamen Watercolor", "CartoDB Positron",
+             "CartoDB Dark_Matter"]
     map.interactive_map(melbourne_loc, markers, 15, tiles=tiles)
     map.make_map_responsive()
 
