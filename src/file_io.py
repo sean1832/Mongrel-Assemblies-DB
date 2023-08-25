@@ -4,6 +4,7 @@ import json
 import io
 import gzip
 import lzma
+import pandas as pd
 
 
 def _create_temp_dir():
@@ -38,6 +39,13 @@ def read_json(file, key: str = None):
             return [d[key] for d in data]
         else:
             return data
+
+
+@st.cache_data()
+def read_csv(file):
+    """Reads a csv file and returns a DataFrame."""
+    df = pd.read_csv(file)
+    return df
 
 
 def export_to_csv(df, filename):
