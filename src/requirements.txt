@@ -124,3 +124,9 @@ wheel==0.38.4
 xyzservices==2023.7.0
 zipp==3.16.2
 paramiko==3.3.1
+folium==0.14.0
+streamlit_keplergl==0.3.0
+streamlit_folium==0.13.0
+keplergl==0.3.2
+streamlit-sortables==0.2.0
+streamlit-extras
