@@ -101,7 +101,9 @@ def table(container):
 
         with st.spinner("fetching from database..."):
             # fetch data from database
-            order_by = ['delete', 'student_number', 'spec_id', 'name', 'material', 'amount', 'unit', 'notes', 'uid',
+            order_by = ['delete', 'student_number', 'spec_id', 'name', 'uid', 'material', 'amount', 'unit', 'notes',
+                        'source', 'source_notes', 'source_year', 'source_latitude', 'source_longitude', 'origin_country', 'source_state', 'source_city',
+                        'origin_name', 'origin_notes', 'origin_year', 'origin_latitude', 'origin_longitude', 'origin_country', 'origin_state', 'origin_city',
                         'images', '3d_model', 'time', 'model_scale']
             original_df = db_handler.get_data(order_by)
             original_df['delete'] = False
@@ -146,6 +148,41 @@ def table(container):
                     options=["mm", "cm", "m"],
                     default="mm"
                 )
+
+            elif 'source_name' in col:  # if column is a source column
+                column_config[col] = st.column_config.TextColumn()
+            elif 'source_notes' in col:  # if column is a shed_id column
+                column_config[col] = st.column_config.TextColumn()
+            elif 'source_year' in col:  # if column is a source_year column
+                column_config[col] = st.column_config.NumberColumn()
+            elif 'source_latitude' in col:  # if column is a source_lat column
+                column_config[col] = st.column_config.NumberColumn()
+            elif 'source_longitude' in col:  # if column is a source_long column
+                column_config[col] = st.column_config.NumberColumn()
+            elif 'source_country' in col:  # if column is a source_lat column
+                column_config[col] = st.column_config.TextColumn()
+            elif 'source_state' in col:  # if column is a source_lat column
+                column_config[col] = st.column_config.TextColumn()
+            elif 'source_city' in col:  # if column is a source_lat column
+                column_config[col] = st.column_config.TextColumn()
+
+            elif 'origin_name' in col:  # if column is a origin column
+                column_config[col] = st.column_config.TextColumn()
+            elif 'origin_notes' in col:  # if column is a shed_id column
+                column_config[col] = st.column_config.TextColumn()
+            elif 'origin_year' in col:  # if column is a origin_year column
+                column_config[col] = st.column_config.NumberColumn()
+            elif 'origin_latitude' in col:  # if column is a origin_long column
+                column_config[col] = st.column_config.NumberColumn()
+            elif 'origin_longitude' in col:  # if column is a origin_lat column
+                column_config[col] = st.column_config.NumberColumn()
+            elif 'origin_country' in col:  # if column is a origin_lat column
+                column_config[col] = st.column_config.TextColumn()
+            elif 'origin_state' in col:  # if column is a origin_lat column
+                column_config[col] = st.column_config.TextColumn()
+            elif 'origin_city' in col:  # if column is a origin_lat column
+                column_config[col] = st.column_config.TextColumn()
+
             elif 'delete' in col:
                 column_config[col] = st.column_config.CheckboxColumn()
 
