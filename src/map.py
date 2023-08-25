@@ -41,19 +41,30 @@ def static_map(location: dict, zoom=10, data=None):
     return map_
 
 
-def interactive_map(location, markers, zoom_start=16, tiles="Satellite"):
-    attr = "Map data © OpenStreetMap contributors"  # Default attribution for OSM
-    if tiles == "Satellite":
-        tiles = "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"
-        attr = "Map data © Google"
-
+def interactive_map(location, markers, zoom_start=16, tiles: list = ["Satellite"]):
     m = folium.Map(
         location=[location['lat'], location['long']],
-        zoom_start=zoom_start,
-        tiles=tiles,
-        attr=attr
+        zoom_start=zoom_start
     )
 
+    # Add the custom Satellite tile layer if specified
+    if "Satellite" in tiles:
+        folium.TileLayer(
+            tiles="https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
+            attr="Map data © Google",
+            name="Satellite"
+        ).add_to(m)
+
+    # Add other tile layers using a for loop
+    for tile in tiles:
+        if tile != "Satellite":  # Exclude the custom Satellite layer
+            folium.TileLayer(
+                tiles=tile,
+                name=tile
+            ).add_to(m)
+    folium.LayerControl().add_to(m)
+
+    # Add preset markers
     for marker in markers:
         folium.Marker(
             [marker['lat'], marker['long']], popup=f"<i>{marker['name']}</i>", tooltip=marker['name']

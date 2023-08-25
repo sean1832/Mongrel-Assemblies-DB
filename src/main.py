@@ -201,7 +201,8 @@ def map_marker_form():
             "long": 143.571625
         }
     ]
-    map.interactive_map(melbourne_loc, markers, 15, tiles='Satellite')
+    tiles = ["Satellite", "Stamen Terrain", "Stamen Toner", "Stamen Watercolor", "CartoDB Positron", "CartoDB Dark_Matter"]
+    map.interactive_map(melbourne_loc, markers, 15, tiles=tiles)
     map.make_map_responsive()
 
 
