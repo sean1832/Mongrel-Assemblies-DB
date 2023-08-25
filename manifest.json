@@ -1,7 +1,7 @@
 {
   "name": "Mongrel Assembly DB",
   "description": "Web interface for the Mongrel Assembly database. This database stores 3d models & metadata about salvage building elements of the Queen's Victoria Market.",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "license": {
     "type": "MIT",
     "url": "https://github.com/sean1832/Mongrel-Assemblies-DB/blob/main/LICENSE"
