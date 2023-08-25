@@ -291,6 +291,13 @@ def more_info_form():
 
         origin_notes = st.text_area('Origin Notes', height=130, help='Notes or description for extra info')
 
+    if not origin_country:
+        origin_country = "<Unknown>"
+    if not origin_state:
+        origin_state = "<Unknown>"
+    if not origin_city:
+        origin_city = "<Unknown>"
+
     if source_longitude == 0.0 and source_latitude == 0.0:
         source_longitude = None
         source_latitude = None
