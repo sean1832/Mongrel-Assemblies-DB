@@ -321,6 +321,12 @@ def more_info_form():
 
         origin_notes = st.text_area('Origin Notes', height=130, help='Notes or description for extra info')
 
+    # handle empty values
+    if source_year == -1:
+        source_year = None
+    if origin_year == -1:
+        origin_year = None
+
     if not origin_country:
         origin_country = "<Unknown>"
     if not origin_state:
