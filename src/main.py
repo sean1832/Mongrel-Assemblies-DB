@@ -265,7 +265,7 @@ def more_info_form():
         st.info("Where was this item salvaged from?", icon='❔')
         col1, col2 = st.columns(2)
         with col1:
-            source_name = st.text_input('Source (e.g. `Queen Victorian Market` or `Beach Forest Quarry`)',
+            source_name = st.text_input('Source (e.g. `Queen Victorian Market`)',
                                         help='Where is this item salvaged from?')
             source_latitude = st.number_input('Latitude',
                                               format='%.5f',
