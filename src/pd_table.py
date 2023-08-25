@@ -4,6 +4,7 @@ import file_io
 import utils
 from streamlit_sortables import sort_items
 from streamlit_extras import stateful_button
+import numpy as np
 
 
 def compare_dataframes(df_original, df_modified):
@@ -88,6 +89,12 @@ def handel_update(filtered_df, modified_df):
                     else:
                         # add current time to modified_fields
                         data['modified_fields']['time'] = utils.get_current_time()
+
+                        # check if modified_fields contains numpy.int64
+                        for key, value in data['modified_fields'].items():
+                            if isinstance(value, np.int64):
+                                data['modified_fields'][key] = int(value)
+
                         db_handler.update_data(data['modified_fields'], data['uid'], data['student_number'])
                         update_count += 1
                 st.success(
