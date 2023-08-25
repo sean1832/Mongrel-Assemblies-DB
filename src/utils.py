@@ -18,6 +18,14 @@ def clear_temp():
         os.rmdir('temp')
 
 
+def index_of_list(lst, item):
+    """Returns the index of the item in the list."""
+    try:
+        return lst.index(item) if item in lst else 0
+    except ValueError:
+        return 0
+
+
 def make_clickable(url):
     """Makes a URL clickable."""
     return f'<a target="_blank" href="{url}">{url}</a>'
@@ -51,6 +59,7 @@ def check_id():
     except KeyError:
         return False
 
+
 def initialize_session_state():
     """Initialize or reset the session state variables."""
     import streamlit as st
@@ -69,6 +78,7 @@ def initialize_session_state():
         if key not in st.session_state:
             st.session_state[key] = default_value
 
+
 def validate_submission(uploaded_images, uploaded_model, amount):
     """Validate the form submission inputs."""
     import streamlit as st
@@ -83,6 +93,7 @@ def validate_submission(uploaded_images, uploaded_model, amount):
         st.error('❌Count cannot be `0`.')
         return False
     return True
+
 
 def create_metadata(ROOT, spec_id, name, material, amount, unit, notes, filename, uid):
     """Create metadata for the uploaded assets."""
@@ -108,6 +119,7 @@ def create_metadata(ROOT, spec_id, name, material, amount, unit, notes, filename
     }
 
     return data
+
 
 def submit_data_to_db(ROOT, spec_id, name, material, amount, unit, notes, filename, uid, model_scale):
     """Submit the constructed data to the database."""
@@ -135,6 +147,7 @@ def submit_data_to_db(ROOT, spec_id, name, material, amount, unit, notes, filena
     }
     db_handler.set_data(data, uid)
 
+
 def initialize_and_generate_uid():
     """Initialize and generate a UID if it doesn't exist."""
     import streamlit as st
@@ -158,6 +171,7 @@ def initialize_and_generate_uid():
 
     return uid
 
+
 def check_uid_and_get_defaults(df, uid):
     """Check if the UID exists in the database and fetch default values for the form."""
     uid_exists = df['uid'].str.contains(uid).any()
@@ -176,6 +190,7 @@ def check_uid_and_get_defaults(df, uid):
 
     return uid_exists, defaults
 
+
 def create_info_form(spec_id_default, name_default, material_default):
     """Create form fields for Specification ID, Name, and Material."""
     with st.form(key='info_form'):
@@ -192,21 +207,26 @@ def create_info_form(spec_id_default, name_default, material_default):
                                      help='What is the name of the component?',
                                      placeholder='e.g. Shop Front Window Frame', value=name_default)
             with col5:
-                material = st.selectbox('*Material', mat_list, help='What material is the component made of?', index=material_default)
-    
+                material = st.selectbox('*Material', mat_list, help='What material is the component made of?',
+                                        index=material_default)
+
     return spec_id, name, material
+
 
 def create_amount_unit_notes_form(amount_default, unit_default, notes_default):
     """Create form fields for Amount, Unit, and Notes/Description."""
     col3, col4 = st.columns([2, 1])
     with col3:
-        amount = st.number_input('*Amount', step=1, min_value=0, help='How many components are there?', value=amount_default)
+        amount = st.number_input('*Amount', step=1, min_value=0, help='How many components are there?',
+                                 value=amount_default)
     with col4:
         unit = st.selectbox('*Unit', unit_list, help='What is the unit of the amount?', index=unit_default)
     with col2:
-        notes = st.text_area('Notes/ Description', height=130, help='Notes or description for extra info', value=notes_default)
-    
+        notes = st.text_area('Notes/ Description', height=130, help='Notes or description for extra info',
+                             value=notes_default)
+
     return amount, unit, notes
+
 
 def create_additional_info_form(amount_default, unit_default, notes_default):
     """Create form fields for the component's Amount, Unit, and Notes."""
@@ -221,9 +241,11 @@ def create_additional_info_form(amount_default, unit_default, notes_default):
         with col8:
             notes = st.text_area('Notes',
                                  help='Add any additional notes or details about the component here',
-                                 placeholder='e.g. This is the main frame for the shop front window', value=notes_default)
-    
+                                 placeholder='e.g. This is the main frame for the shop front window',
+                                 value=notes_default)
+
     return amount, unit, notes
+
 
 def create_uploaders():
     """Create uploaders for reference photographs or images and 3D models."""
@@ -234,14 +256,16 @@ def create_uploaders():
                                            accept_multiple_files=True)
     with col2:
         uploaded_model = st.file_uploader('*📐 3D Model (.3dm)', type=['3dm'])
-    
+
     return uploaded_images, uploaded_model
+
 
 def create_model_scale_selector():
     """Create a selector for the model scale."""
     with col3:
         model_scale = st.selectbox('*Model Scale', ['mm', 'cm', 'm'], index=0)
     return model_scale
+
 
 def display_messages():
     """Display informational and warning messages."""
