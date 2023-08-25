@@ -8,6 +8,7 @@ from PIL import Image
 import traceback
 import streamlit_toggle as toggle
 import pd_table
+import map
 
 # set up page
 st.set_page_config(
@@ -33,7 +34,16 @@ db_handler.close_app_if_exists(APP_NAME)
 gcp_handler.init()
 
 
-def submit_form(uid, spec_id, name, material, amount, unit, notes, model_scale, uploaded_images, uploaded_model):
+def submit_form(base_info, source_info, origin_info, uploaded_images, uploaded_model):
+    uid = base_info['uid']
+    spec_id = base_info['spec_id']
+    name = base_info['name']
+    material = base_info['material']
+    amount = base_info['amount']
+    unit = base_info['unit']
+    notes = base_info['notes']
+    model_scale = base_info['model_scale']
+
     st.session_state['msg'] = ''
     filename = f'{spec_id}-{name}-{st.session_state["student_number"]}'
     with st.spinner(text='Uploading data...'):
@@ -98,7 +108,24 @@ def submit_form(uid, spec_id, name, material, amount, unit, notes, model_scale, 
                                                           ['.obj', '.3dm', '.gz', '.xz'],
                                                           infos=['md5_hash']),
                     'time': utils.get_current_time(),
-                    'model_scale': model_scale
+                    'model_scale': model_scale,
+                    'source_name': source_info['name'],
+                    'source_year': source_info['year'],
+                    'source_latitude': source_info['latitude'],
+                    'source_longitude': source_info['longitude'],
+                    'source_country': source_info['country'],
+                    'source_state': source_info['state'],
+                    'source_city': source_info['city'],
+                    'source_notes': source_info['notes'],
+                    'origin_name': origin_info['name'],
+                    'origin_year': origin_info['year'],
+                    'origin_latitude': origin_info['latitude'],
+                    'origin_longitude': origin_info['longitude'],
+                    'origin_country': origin_info['country'],
+                    'origin_state': origin_info['state'],
+                    'origin_city': origin_info['city'],
+                    'origin_notes': origin_info['notes'],
+                    'owner': st.session_state['student_number']
                 }
                 db_handler.set_data(data, uid)
 
@@ -122,7 +149,6 @@ def db_selector_form():
     with st.expander("📝 Modify from database"):
         df = pd_table.table(st.container())
         return df
-
 
 
 def uid_form():
@@ -154,6 +180,130 @@ def uid_form():
                 if 'lock_uid' not in st.session_state:
                     st.session_state['lock_uid'] = False
     return uid
+
+
+def map_marker_form():
+    melbourne_loc = {
+        "lat": -37.8074,
+        "long": 144.9568
+    }
+    markers = [
+        {
+            "name": "QVM",
+            "lat": -37.8069,
+            "long": 144.9570
+        },
+        {
+            "name": "Beech Forest",
+            "lat": -38.626938,
+            "long": 143.571625
+        }
+    ]
+    map.interactive_map(melbourne_loc, markers, 15, tiles='Satellite')
+    map.make_map_responsive()
+
+
+def more_info_form():
+    target_countries = ['Australia', 'China', 'United States', 'United Kingdom', 'Japan', 'Germany', 'France', 'Italy']
+
+    states_df = file_io.read_csv('data/states.csv')
+    cities_df = file_io.read_csv('data/cities.csv')
+
+    # Filter the dataframes based on the desired countries
+    filtered_states_df = states_df[states_df['country_name'].isin(target_countries)]
+    filtered_cities_df = cities_df[cities_df['country_name'].isin(target_countries)]
+
+    countries_list = target_countries
+    countries_list.append('Unknown')
+    states_list = list(set(filtered_states_df['name'].tolist()))
+    states_list.append('Unknown')
+    cities_list = list(set(filtered_cities_df['name'].tolist()))
+    cities_list.append('Unknown')
+
+    col_a, col_b = st.columns(2)
+    with col_a:
+        st.markdown("### 🏗️ Source")
+        col1, col2 = st.columns(2)
+        with col1:
+            source_name = st.text_input('Source (e.g. `QVM` or `Beach Forest Quarry`)',
+                                        help='Where is this item salvaged from?')
+            source_latitude = st.number_input('Latitude',
+                                              format='%.5f',
+                                              step=0.00001,
+                                              help='Latitude of the source location',
+                                              min_value=-90.0, max_value=90.0, value=0.0)
+        with col2:
+            source_year = st.number_input('Year (if unknown, set to `-1`)', step=1, min_value=2023,
+                                          help='What year is this item salvaged from?')
+            source_longitude = st.number_input('Longitude',
+                                               format='%.5f',
+                                               step=0.00001,
+                                               help='Longitude of the source location',
+                                               min_value=-180.0, max_value=180.0, value=0.0)
+
+        col1, col2, col3 = st.columns([1, 1, 1])
+        with col1:
+            source_country = st.selectbox('Source Country', countries_list,
+                                          index=utils.index_of_list(countries_list, 'Australia'))
+        with col2:
+            source_state = st.selectbox('Source State', states_list, index=utils.index_of_list(states_list, 'Victoria'))
+        with col3:
+            source_city = st.selectbox('Source City', cities_list, index=utils.index_of_list(cities_list, 'Melbourne'))
+        source_notes = st.text_area('Source Notes (e.g. `shed-a` or `toilet`)', height=130,
+                                    help='Notes or description for extra info')
+    with col_b:
+        st.markdown('### 🏭 Origin')
+        col1, col2 = st.columns(2)
+        with col1:
+            origin_name = st.text_input('Origin (e.g. `Bowling Iron Works`)', help='Where is this item manufactured?')
+            origin_latitude = st.number_input('Latitude',
+                                              format='%.5f',
+                                              step=0.00001,
+                                              help='Latitude of the origin location',
+                                              min_value=-90.0, max_value=90.0, value=0.0)
+        with col2:
+            origin_year = st.number_input('Year (if unknown, set to `-1`)', step=1, min_value=-1,
+                                          help='What year is this item manufactured?')
+            origin_longitude = st.number_input('Longitude',
+                                               format='%.5f',
+                                               step=0.00001,
+                                               help='Longitude of the origin location',
+                                               min_value=-180.0, max_value=180.0, value=0.0)
+
+        col1, col2, col3 = st.columns([1, 1, 1])
+        with col1:
+            origin_country = st.selectbox('Origin Country', countries_list,
+                                          index=utils.index_of_list(countries_list, 'Unknown'))
+        with col2:
+            origin_state = st.selectbox('Origin State', states_list, index=utils.index_of_list(states_list, 'Unknown'))
+        with col3:
+            origin_city = st.selectbox('Origin City', cities_list, index=utils.index_of_list(cities_list, 'Unknown'))
+
+        origin_notes = st.text_area('Origin Notes', height=130, help='Notes or description for extra info')
+
+    source_data = {
+        'name': source_name,
+        'year': source_year,
+        'latitude': source_latitude,
+        'longitude': source_longitude,
+        'country': source_country,
+        'state': source_state,
+        'city': source_city,
+        'notes': source_notes
+    }
+
+    origin_data = {
+        'name': origin_name,
+        'year': origin_year,
+        'latitude': origin_latitude,
+        'longitude': origin_longitude,
+        'country': origin_country,
+        'state': origin_state,
+        'city': origin_city,
+        'notes': origin_notes
+    }
+
+    return source_data, origin_data
 
 
 def info_form(uid, df):
@@ -192,16 +342,23 @@ def info_form(uid, df):
                                      help='What is the name of the component?',
                                      placeholder='e.g. Shop Front Window Frame', value=name_default)
             with col5:
-
-                material = st.selectbox('*Material', mat_list, help='What material is the component made of?', index=material_default)
+                material = st.selectbox('*Material', mat_list, help='What material is the component made of?',
+                                        index=material_default)
 
             col3, col4 = st.columns([2, 1])
             with col3:
-                amount = st.number_input('*Amount', step=1, min_value=0, help='How many components are there?', value=amount_default)
+                amount = st.number_input('*Amount', step=1, min_value=0, help='How many components are there?',
+                                         value=amount_default)
             with col4:
                 unit = st.selectbox('*Unit', unit_list, help='What is the unit of the amount?', index=unit_default)
         with col2:
-            notes = st.text_area('Notes/ Description', height=130, help='Notes or description for extra info', value=notes_default)
+            notes = st.text_area('Notes/ Description', height=130, help='Notes or description for extra info',
+                                 value=notes_default)
+
+        with st.expander('📝 More info', expanded=True):
+            source_info, origin_info = more_info_form()
+            st.markdown('**Map Marker**: Click on the map to get the coordinates.')
+            map_marker_form()
 
         # image and 3D model uploader
         col1, col2, col3 = st.columns([1, 0.8, 0.2])
@@ -214,8 +371,19 @@ def info_form(uid, df):
         with col3:
             model_scale = st.selectbox('*Model Scale', ['mm', 'cm', 'm'], index=0)
 
+        base_info = {
+            'uid': uid,
+            'spec_id': spec_id,
+            'name': name,
+            'material': material,
+            'amount': amount,
+            'unit': unit,
+            'notes': notes,
+            'model_scale': model_scale
+        }
+
         if st.form_submit_button(label='🚀 Submit'):
-            submit_form(uid, spec_id, name, material, amount, unit, notes, model_scale, uploaded_images, uploaded_model)
+            submit_form(base_info, source_info, origin_info, uploaded_images, uploaded_model)
 
 
 def data_form():
