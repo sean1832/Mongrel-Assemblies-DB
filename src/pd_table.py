@@ -32,7 +32,7 @@ def compare_dataframes(df_original, df_modified):
     return modified_data
 
 
-def filter_data(df, filter_dict):
+def search_data(df, filter_dict):
     """Filters the data in the DataFrame."""
     # Get the filter keys
     filter_keys = filter_dict.keys()
@@ -102,20 +102,23 @@ def table(container):
         with st.spinner("fetching from database..."):
             # fetch data from database
             order_by = ['delete', 'student_number', 'spec_id', 'name', 'uid', 'material', 'amount', 'unit', 'notes',
-                        'source_name', 'source_notes', 'source_year', 'source_latitude', 'source_longitude', 'source_country', 'source_state', 'source_city',
-                        'origin_name', 'origin_notes', 'origin_year', 'origin_latitude', 'origin_longitude', 'origin_country', 'origin_state', 'origin_city',
+                        'source_name', 'source_notes', 'source_year', 'source_latitude', 'source_longitude',
+                        'source_country', 'source_state', 'source_city',
+                        'origin_name', 'origin_notes', 'origin_year', 'origin_latitude', 'origin_longitude',
+                        'origin_country', 'origin_state', 'origin_city',
                         'images', '3d_model', 'time', 'model_scale']
             original_df = db_handler.get_data(order_by)
             original_df['delete'] = False
 
+        # Create a container for the search bar
         col1, col2 = st.columns(2)
         with col1:
-            filter_key = st.selectbox("Filter by", options=original_df.columns, key='filter_by')
+            search_key = st.selectbox("Search by", options=original_df.columns, key='search_by')
         with col2:
-            filter_val = st.text_input("Filter value", key='filter_value')
+            search_val = st.text_input("Search value", key='Search_value')
 
         # Filter the data for editing
-        filtered_df = filter_data(original_df.copy(), {filter_key: filter_val})
+        result_df = search_data(original_df.copy(), {search_key: search_val})
 
         # Get list of column names
         df_cols = original_df.columns.tolist()
@@ -187,7 +190,7 @@ def table(container):
                 column_config[col] = st.column_config.CheckboxColumn()
 
         modified_df = st.data_editor(
-            filtered_df,
+            result_df,
             column_config=column_config,
             use_container_width=True,
             disabled=['uid', 'student_number', 'time'],
@@ -196,7 +199,7 @@ def table(container):
         col1, col2 = st.columns([0.2, 1])
         with col1:
             if st.button('⬆️ Update changes'):
-                handel_update(filtered_df, modified_df)
+                handel_update(result_df, modified_df)
         with col2:
             col3, col4 = st.columns([0.2, 1])
             with col3:
