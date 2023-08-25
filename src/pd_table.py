@@ -113,7 +113,7 @@ def table(container):
                         'source_country', 'source_state', 'source_city',
                         'origin_name', 'origin_notes', 'origin_year', 'origin_latitude', 'origin_longitude',
                         'origin_country', 'origin_state', 'origin_city',
-                        'images', '3d_model', 'time', 'model_scale', 'owner', 'md5_hash']
+                        'images', '3d_model', 'time', 'model_scale']
             original_df = db_handler.get_data(order_by)
             original_df['delete'] = False
 
