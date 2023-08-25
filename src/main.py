@@ -223,6 +223,7 @@ def more_info_form():
     col_a, col_b = st.columns(2)
     with col_a:
         st.markdown("### 🏗️ Source")
+        st.info("Where was this item salvaged from?", icon='❔')
         col1, col2 = st.columns(2)
         with col1:
             source_name = st.text_input('Source (e.g. `Queen Victorian Market` or `Beach Forest Quarry`)',
@@ -253,6 +254,7 @@ def more_info_form():
                                     help='Notes or description for extra info')
     with col_b:
         st.markdown('### 🏭 Origin')
+        st.info('Where was this item manufactured or originated? (if known)', icon='❔')
         col1, col2 = st.columns(2)
         with col1:
             origin_name = st.text_input('Origin (e.g. `Bowling Iron Works`)', help='Where is this item manufactured?')
@@ -364,7 +366,8 @@ def info_form(uid, df):
 
         with st.expander('📝 More info', expanded=True):
             source_info, origin_info = more_info_form()
-            st.markdown('**Map Marker**: Click on the map to get the coordinates.')
+            st.markdown('**Map Marker**: Click on the map to get the exact coordinates. '
+                        'Copy and paste the coordinates (`latitude`, `longitude`) to the form.')
             map_marker_form()
 
         # image and 3D model uploader

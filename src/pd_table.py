@@ -119,11 +119,11 @@ def table(container):
 
         filter_items = [
             {
-                'header': 'Sort by',
+                'header': 'Sort by (drag to arrange)',
                 'items': original_df.columns.tolist()
             },
             {
-                'header': 'Columns to remove',
+                'header': 'Columns to hide (drag to hide)',
                 'items': []
             }
         ]
