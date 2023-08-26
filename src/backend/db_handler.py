@@ -146,9 +146,8 @@ def close_app_if_exists(name='default'):
     try:
         app = firebase_admin.get_app(name)
         firebase_admin.delete_app(app)
-        print(f'App {name} has been closed.')
     except ValueError as e:
-        print(f'App {name} does not exist.')
+        pass
 
 
 def fetch_all(db):

@@ -460,7 +460,6 @@ def data_form():
 try:
     db_handler.init_db(APP_NAME)
     app = db_handler.get_init_firestore_app(APP_NAME)
-    print('Database initialized.')
 
     with app_header:
         st.title('🔥Mongrel Assembly Data Entry Form')
