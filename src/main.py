@@ -245,7 +245,7 @@ def map_marker_form():
     map.make_map_responsive()
 
 
-def more_info_form():
+def advanced_info_form():
     target_countries = ['Australia', 'China', 'United States', 'United Kingdom', 'Japan', 'Germany', 'France', 'Italy']
 
     states_df = file_io.read_csv('data/states.csv')
@@ -416,8 +416,8 @@ def info_form(uid, df):
             notes = st.text_area('Notes/ Description', height=130, help='Notes or description for extra info',
                                  value=notes_default)
 
-        with st.expander('📝 More info', expanded=True):
-            source_info, origin_info = more_info_form()
+        with st.expander('📝 Advanced Infos', expanded=True):
+            source_info, origin_info = advanced_info_form()
             st.markdown('**Map Marker**: Click on the map to get the exact coordinates. '
                         'Copy and paste the coordinates (`latitude`, `longitude`) to the form.')
             map_marker_form()
