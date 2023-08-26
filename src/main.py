@@ -416,7 +416,7 @@ def info_form(uid, df):
             notes = st.text_area('Notes/ Description', height=130, help='Notes or description for extra info',
                                  value=notes_default)
 
-        with st.expander('📝 Advanced Infos', expanded=True):
+        with st.expander('📝 Advanced Infos', expanded=False):
             source_info, origin_info = advanced_info_form()
             st.markdown('**Map Marker**: Click on the map to get the exact coordinates. '
                         'Copy and paste the coordinates (`latitude`, `longitude`) to the form.')
