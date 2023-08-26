@@ -4,6 +4,7 @@ import file_io
 import utils
 from streamlit_sortables import sort_items
 from streamlit_extras import stateful_button
+import numpy as np
 
 
 def compare_dataframes(df_original, df_modified):
@@ -88,6 +89,12 @@ def handel_update(filtered_df, modified_df):
                     else:
                         # add current time to modified_fields
                         data['modified_fields']['time'] = utils.get_current_time()
+
+                        # check if modified_fields contains numpy.int64
+                        for key, value in data['modified_fields'].items():
+                            if isinstance(value, np.int64):
+                                data['modified_fields'][key] = int(value)
+
                         db_handler.update_data(data['modified_fields'], data['uid'], data['student_number'])
                         update_count += 1
                 st.success(
@@ -98,6 +105,42 @@ def handel_update(filtered_df, modified_df):
     except Exception as e:
         st.error(f"❌ Error: {e}, Could not update database! Try again, or contact the developer.")
 
+
+def initialize_filter_items(original_df_columns):
+    return [
+        {
+            'header': 'Sort by (drag to arrange)',
+            'items': original_df_columns
+        },
+        {
+            'header': 'Columns to hide (drag to hide)',
+            'items': []
+        }
+    ]
+
+# Define a function to manage the state of the filter items
+def manage_filter_items(original_df_columns):
+    # Initialize the session state if not already initialized
+    if 'filter_items' not in st.session_state:
+        st.session_state['filter_items'] = initialize_filter_items(original_df_columns)
+
+    # Display the current filter items and allow sorting
+    filter_keys = sort_items(st.session_state['filter_items'], multi_containers=True)
+
+    col1, col2 = st.columns([1, 7])
+    with col1:
+        # If the button is pressed, switch the items
+        if st.button('↩️ Swap'):
+            filter_keys[0]['items'], filter_keys[1]['items'] = filter_keys[1]['items'], filter_keys[0]['items']
+            st.session_state['filter_items'] = filter_keys
+            st.experimental_rerun()
+    with col2:
+        # If the button is pressed, reset the filter items
+        if st.button('♻️ Reset'):
+            st.session_state['filter_items'] = initialize_filter_items(original_df_columns)
+            st.experimental_rerun()
+
+    return filter_keys
 
 def table(container):
     """Creates the database table."""
@@ -117,19 +160,9 @@ def table(container):
             original_df = db_handler.get_data(order_by)
             original_df['delete'] = False
 
-        filter_items = [
-            {
-                'header': 'Sort by (drag to arrange)',
-                'items': original_df.columns.tolist()
-            },
-            {
-                'header': 'Columns to hide (drag to hide)',
-                'items': []
-            }
-        ]
+        filter_keys = manage_filter_items(original_df.columns.tolist())
 
         # Create a filter bar
-        filter_keys = sort_items(filter_items, multi_containers=True)
         filtered_df = original_df.copy()[filter_keys[0]['items']]
 
         # Create a container for the search bar
@@ -231,11 +264,14 @@ def table(container):
 
             if stateful_button.button('🔍 Review Changes', key='review'):
                 st.session_state['review'] = True
-                handel_update(result_df, modified_df)
+        if st.session_state['review']:
+            handel_update(result_df, modified_df)
+
         with col2:
             col3, col4 = st.columns([0.2, 1])
             with col3:
                 file_io.export_to_csv(original_df, 'database')
             with col4:
                 file_io.export_to_excel(original_df, "database")
+
         return original_df
