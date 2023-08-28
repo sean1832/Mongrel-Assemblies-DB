@@ -431,7 +431,7 @@ def info_form(uid, df):
         with col2:
             uploaded_model = st.file_uploader('*📐 3D Model (.3dm)', type=['3dm'], accept_multiple_files=False)
         with col3:
-            model_scale = st.selectbox('*Model Scale', ['mm', 'cm', 'm'], index=0)
+            model_scale = st.selectbox('*Model Scale', ['1:1', '1:100', '1:1000'], index=0)
 
         base_info = {
             'uid': uid,

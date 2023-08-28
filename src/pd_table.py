@@ -203,8 +203,8 @@ def table(container):
                 column_config[col] = st.column_config.TextColumn()
             elif 'model_scale' in col:  # if column is a model_scale column
                 column_config[col] = st.column_config.SelectboxColumn(
-                    options=["mm", "cm", "m"],
-                    default="mm"
+                    options=["1:1", "1:100", "1:1000"],
+                    default="1:1"
                 )
 
             elif 'source_name' in col:  # if column is a source column
